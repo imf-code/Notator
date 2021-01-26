@@ -5,6 +5,9 @@ import express from 'express';
 import http from 'http';
 import https from 'https';
 
+// API
+import routeApi from './api/api';
+
 // DB
 import 'reflect-metadata';
 import { createConnection } from 'typeorm';
@@ -19,8 +22,8 @@ const port = 80;
 const sPort = 443;
 
 // Dev SSL
-const key = fs.readFileSync(path.join(__dirname, 'localhost.key'), 'utf8');
-const cert = fs.readFileSync(path.join(__dirname, 'localhost.crt'), 'utf8');
+const key = fs.readFileSync(path.join(__dirname, '..', 'localhost.key'), 'utf8');
+const cert = fs.readFileSync(path.join(__dirname, '..', 'localhost.crt'), 'utf8');
 const creds = { key: key, cert: cert };
 
 // Redirect to https (doesn't work with Heroku?)
@@ -30,6 +33,9 @@ app.use(function (req, res, next) {
     }
     next();
 });
+
+// Api routing
+app.use('/api', routeApi());
 
 // Static server folder
 app.use(express.static(path.join(__dirname, 'test')));
