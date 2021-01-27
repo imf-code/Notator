@@ -5,3 +5,4 @@ cert.pem
 key.pem
 localhost.key
 localhost.crt
+myCA.crt

@@ -24,7 +24,37 @@ const sPort = 443;
 // Dev SSL
 const key = fs.readFileSync(path.join(__dirname, '..', 'localhost.key'), 'utf8');
 const cert = fs.readFileSync(path.join(__dirname, '..', 'localhost.crt'), 'utf8');
+const ca = fs.readFileSync(path.join(__dirname, '..', 'myCA.crt'), 'utf8');
 const creds = { key: key, cert: cert };
+
+// DB connection
+(async () => {
+    await createConnection({
+        type: 'postgres',
+        host: process.env.PGHOST,
+        port: Number(process.env.PGPORT),
+        username: process.env.PGUSER,
+        password: process.env.PGPASSWORD,
+        database: process.env.PGDATABASE,
+        entities: [
+            Client,
+            Note,
+            Topic
+        ],
+        ssl: {
+            ca: ca,
+            key: key,
+            cert: cert
+        },
+        connectTimeoutMS: 10000,
+        synchronize: true,
+        logging: false
+    }).then(() => {
+        console.log('DB connection established.');
+    }).catch((err) => {
+        console.log(err);
+    });
+})();
 
 // Redirect to https (doesn't work with Heroku?)
 app.use(function (req, res, next) {
