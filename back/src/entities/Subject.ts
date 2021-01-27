@@ -1,10 +1,10 @@
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Note } from './Note';
 import { Client } from './Client';
-import { Subject } from './Subject';
+import { Topic } from './Topic';
 
 @Entity()
-export class Topic {
+export class Subject {
 
     @PrimaryGeneratedColumn('increment')
     id!: number;
@@ -12,13 +12,13 @@ export class Topic {
     @Column('varchar')
     name!: string;
 
-    @ManyToOne(() => Client, user => user.topics)
+    @ManyToOne(() => Client, user => user.subjects)
     client!: string;
 
-    @ManyToOne(() => Subject, subject => subject.topics)
-    subject!: number;
+    @OneToMany(() => Topic, topic => topic.subject)
+    topics!: Topic[];
 
-    @OneToMany(() => Note, note => note.topic)
+    @OneToMany(() => Note, note => note.subject)
     notes!: Note[];
 
 

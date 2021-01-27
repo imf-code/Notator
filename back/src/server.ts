@@ -11,7 +11,7 @@ import routeApi from './api/api';
 // DB
 import 'reflect-metadata';
 import { createConnection, getConnection } from 'typeorm';
-import { Client, Note, Topic } from './entities/Entities';
+import { Client, Note, Topic, Subject } from './entities/Entities';
 // import * as Entities from './entities/Entities';
 
 require('dotenv').config();
@@ -38,8 +38,9 @@ const creds = { key: key, cert: cert };
         database: process.env.PGDATABASE,
         entities: [
             Client,
-            Note,
-            Topic
+            Subject,
+            Topic,
+            Note
         ],
         ssl: {
             ca: ca,
@@ -89,34 +90,4 @@ httpsServer.listen(sPort, () => {
 });
 httpServer.listen(port, () => {
     console.log('HTTP server running on port: ' + port);
-})
-
-// app.listen(port, () => {
-//     console.log('Server running on port: ' + port);
-// });
-
-// createConnection({
-//     type: 'postgres',
-//     host: process.env.PGHOST,
-//     port: Number(process.env.PGPORT),
-//     username: process.env.PGUSER,
-//     password: process.env.PGPASSWORD,
-//     database: process.env.PGDATABASE,
-//     entities: [
-//         Client,
-//         Note,
-//         Topic
-//     ],
-//     synchronize: true,
-//     logging: false
-// }).then(connection => {
-
-//     let newUser = new Client;
-//     newUser.name = 'Testaaja';
-//     newUser.token = 'Foo';
-
-//     connection.manager.save(newUser)
-//         .then(t => console.log(`Done! ID = ${t.id}.`))
-//         .catch(err => console.log(err));
-
-// }).catch(err => console.log(err));
+});

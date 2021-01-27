@@ -1,6 +1,7 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Note } from './Note';
 import { Topic } from './Topic';
+import { Subject } from './Subject';
 
 @Entity()
 export class Client {
@@ -12,12 +13,15 @@ export class Client {
     name!: string;
 
     @Column('varchar')
-    token!: string;
+    hash!: string;
 
-    @OneToMany(() => Note, note => note.client)
-    notes!: Note[];
-
+    @OneToMany(() => Subject, subject => subject.client)
+    subjects!: Subject[];
+    
     @OneToMany(() => Topic, topic => topic.client)
     topics!: Topic[];
-
+    
+    @OneToMany(() => Note, note => note.client)
+    notes!: Note[];
+    
 }
