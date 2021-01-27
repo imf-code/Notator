@@ -6,13 +6,6 @@ import bcrypt from 'bcrypt';
 export default (): Router => {
     const router = Router();
 
-    router.get(
-        '/',
-        (req, res) => {
-            res.sendStatus(200);
-        }
-    )
-
     router.post('/signup', (req, res) => {
         if (!req.body.user || !req.body.pwd) {
             res.sendStatus(400);
@@ -33,7 +26,6 @@ export default (): Router => {
             });
 
             if (user) {
-                console.log(user);
                 res.status(400).send('User already exists.');
                 return;
             }
@@ -57,13 +49,43 @@ export default (): Router => {
         });
     });
 
-    router.post(
-        'login',
-        (req, res) => {
-            // body-parser
-            // setup auth stuff
+    router.post('/login', (req, res) => {
+        if (!req.body.user || !req.body.pwd) {
+            res.sendStatus(400);
+            return;
         }
-    )
+
+        const username = String(req.body.user).toLowerCase();
+        const pwd = String(req.body.pwd);
+
+        (async () => {
+            const connection =  getConnection();
+            const user = await connection.manager.findOne(Client, {
+                where: [{
+                    name: username
+                }]
+            });
+
+            if (!user) {
+                res.status(404).send('User not found.');
+                return;
+            }
+
+            if (await bcrypt.compare(pwd, user.hash)) {
+                res.sendStatus(200);
+                return;
+            }
+            else {
+                res.status(400).send('Invalid password.');
+                return;
+            }
+
+        })().catch(err => {
+            console.log(err);
+            res.sendStatus(500);
+            return;
+        });
+    });
 
     return router;
 }
