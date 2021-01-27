@@ -1,12 +1,11 @@
-// Node modules
 import path from 'path';
 import fs from 'fs';
 import express from 'express';
 import http from 'http';
 import https from 'https';
 
-// API
 import routeApi from './api/api';
+import bodyParser from 'body-parser';
 
 // DB
 import 'reflect-metadata';
@@ -65,11 +64,14 @@ app.use(function (req, res, next) {
     next();
 });
 
+// Use bodyparser
+app.use(bodyParser.json());
+
 // Test db
 app.get('/test', (req, res) => {
     (async () => {
         const dbConnection = getConnection();
-        
+
         const asdf = await dbConnection.manager.find(Client);
         console.log(asdf);
         res.sendStatus(200);
