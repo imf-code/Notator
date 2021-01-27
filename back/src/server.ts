@@ -10,7 +10,7 @@ import routeApi from './api/api';
 
 // DB
 import 'reflect-metadata';
-import { createConnection } from 'typeorm';
+import { createConnection, getConnection } from 'typeorm';
 import { Client, Note, Topic } from './entities/Entities';
 // import * as Entities from './entities/Entities';
 
@@ -62,6 +62,17 @@ app.use(function (req, res, next) {
         return res.redirect(301, 'https://' + req.hostname + req.url);
     }
     next();
+});
+
+// Test db
+app.get('/test', (req, res) => {
+    (async () => {
+        const dbConnection = getConnection();
+        
+        const asdf = await dbConnection.manager.find(Client);
+        console.log(asdf);
+        res.sendStatus(200);
+    })();
 });
 
 // Api routing
