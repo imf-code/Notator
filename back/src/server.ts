@@ -6,85 +6,52 @@ import https from 'https';
 
 import routeApi from './api/api';
 import bodyParser from 'body-parser';
+import ExpressSession from 'express-session';
+import { TypeormStore } from 'connect-typeorm';
 
-// DB
-import 'reflect-metadata';
-import { createConnection, getConnection } from 'typeorm';
-import { Client, Note, Topic, Subject } from './entities/Entities';
-// import * as Entities from './entities/Entities';
+import { dbConnect } from './dbConnect';
+import { SessionStorage } from './entities/SessionStorage';
 
+// DEV
 require('dotenv').config();
+const key = fs.readFileSync(path.join(__dirname, '..', 'localhost.key'), 'utf8');
+const cert = fs.readFileSync(path.join(__dirname, '..', 'localhost.crt'), 'utf8');
+const ca = fs.readFileSync(path.join(__dirname, '..', 'myCA.crt'), 'utf8');
+const creds = { key: key, cert: cert };
+const dbCreds = { ca: ca, key: key, cert: cert }
 
 // Server setup
 const app = express();
 const port = 80;
 const sPort = 443;
 
-// Dev SSL
-const key = fs.readFileSync(path.join(__dirname, '..', 'localhost.key'), 'utf8');
-const cert = fs.readFileSync(path.join(__dirname, '..', 'localhost.crt'), 'utf8');
-const ca = fs.readFileSync(path.join(__dirname, '..', 'myCA.crt'), 'utf8');
-const creds = { key: key, cert: cert };
+// Establish db connection
+const connectPromise = dbConnect(dbCreds);
 
-// DB connection
+// Middleware
+app.use(bodyParser.json());
 (async () => {
-    await createConnection({
-        type: 'postgres',
-        host: process.env.PGHOST,
-        port: Number(process.env.PGPORT),
-        username: process.env.PGUSER,
-        password: process.env.PGPASSWORD,
-        database: process.env.PGDATABASE,
-        entities: [
-            Client,
-            Subject,
-            Topic,
-            Note
-        ],
-        ssl: {
-            ca: ca,
-            key: key,
-            cert: cert
-        },
-        connectTimeoutMS: 10000,
-        synchronize: true,
-        logging: false
-    }).then(() => {
-        console.log('DB connection established.');
-    }).catch((err) => {
-        console.log(err);
-    });
+    const connection = await connectPromise;
+    if (!connection) return;
+
+    const sessionRepo = connection.getRepository(SessionStorage);
+
+    app.use(ExpressSession({
+        secret: process.env.SESSION_SECRET as string,
+        saveUninitialized: false,
+        resave: false,
+        store: new TypeormStore({
+            cleanupLimit: 2,
+            ttl: 2592000
+        }).connect(sessionRepo)
+    }));
 })();
 
-// Redirect to https (doesn't work with Heroku?)
-app.use(function (req, res, next) {
-    if (!req.secure) {
-        return res.redirect(301, 'https://' + req.hostname + req.url);
-    }
-    next();
-});
-
-// Use bodyparser
-app.use(bodyParser.json());
-
-// Test db
-app.get('/test', (req, res) => {
-    (async () => {
-        const dbConnection = getConnection();
-
-        const asdf = await dbConnection.manager.find(Client);
-        console.log(asdf);
-        res.sendStatus(200);
-    })();
-});
-
-// Api routing
+// Routing
+app.use(express.static(path.join(__dirname, 'test')));
 app.use('/api', routeApi());
 
-// Static server folder
-app.use(express.static(path.join(__dirname, 'test')));
-
-// Start listening
+// Start server
 const httpServer = http.createServer(app);
 const httpsServer = https.createServer(creds, app);
 httpsServer.listen(sPort, () => {
