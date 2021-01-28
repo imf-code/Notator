@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { Connection, createConnection } from 'typeorm';
-import { Client, Note, Topic, Subject } from './entities/Entities';
+import { Client, Note, Topic, Subject, SessionStorage } from './entities/Entities';
 
 export async function dbConnect(ssl: { ca: string, key: string, cert: string }): Promise<Connection | null> {
     return await createConnection({
@@ -14,7 +14,8 @@ export async function dbConnect(ssl: { ca: string, key: string, cert: string }):
             Client,
             Subject,
             Topic,
-            Note
+            Note,
+            SessionStorage
         ],
         ssl: ssl,
         connectTimeoutMS: 10000,
