@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { getConnection } from 'typeorm';
 import { Client } from '../entities/Client';
 import bcrypt from 'bcrypt';
+import passport from 'passport';
 
 export default (): Router => {
     const router = Router();
@@ -59,7 +60,7 @@ export default (): Router => {
         const pwd = String(req.body.pwd);
 
         (async () => {
-            const connection =  getConnection();
+            const connection = getConnection();
             const user = await connection.manager.findOne(Client, {
                 where: [{
                     name: username
@@ -86,6 +87,13 @@ export default (): Router => {
             return;
         });
     });
+
+    router.post('/test',
+        passport.authenticate('local'),
+        (req, res) => {
+            req.session.save();
+            res.sendStatus(200);
+        });
 
     return router;
 }
