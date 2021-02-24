@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { Connection, createConnection, getConnection } from 'typeorm';
 import { Client, Note, Topic, Subject, SessionStorage } from './entities/Entities';
+import bcrypt from 'bcrypt';
 
 export interface SSL {
     /** CA certificate */
@@ -83,7 +84,7 @@ export default class Database {
     }
 
     /** Find user by username
-     * @param userName User name, will be converted to lowercase for comparisons
+     * @param userName Username, will be converted to lowercase for comparisons
      */
     public async findUserByName(userName: string): Promise<Client | undefined> {
         if (!userName) return undefined;
@@ -117,5 +118,73 @@ export default class Database {
                 ]
             });
 
+    }
+
+    /**
+     * Create new user
+     * @param username Username
+     * @param pwd Password
+     */
+    public async createUser(username: string, pwd: string): Promise<boolean> {
+        if (await this.findUserByName(username)) {
+            return false;
+        };
+
+        try {
+            const connection = getConnection();
+
+            const salt = await bcrypt.genSalt(11);
+            console.log(salt);
+            const pwdHash = await bcrypt.hash(pwd, salt);
+
+            const newUser = connection.manager.create(Client, {
+                name: username,
+                hash: pwdHash
+            });
+
+            await connection.manager.save(newUser);
+
+            return true;
+        }
+        catch (err) {
+            console.log(err);
+            return false;
+        };
+    };
+
+    /**
+     * Create new subject
+     * @param userId User ID
+     * @param subj Name of the new subject
+     */
+    public async createSubject(userId: string, subj: string) {
+
+        return await getConnection()
+            .createQueryBuilder()
+            .insert()
+            .into(Subject)
+            .values([{
+                client: userId,
+                name: subj
+            }])
+            .execute();
+    }
+
+    /**
+     * Delete subject by ID
+     * @param userId User ID
+     * @param subId Subject ID
+     */
+    public async delSubject(userId: string, subId: number) {
+
+        return await getConnection()
+            .createQueryBuilder()
+            .delete()
+            .from(Subject)
+            .where({
+                client: userId,
+                id: subId
+            })
+            .execute();
     }
 }

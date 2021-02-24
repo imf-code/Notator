@@ -1,48 +1,32 @@
 import { Router } from 'express';
-import { getConnection } from 'typeorm';
-import { Client } from '../entities/Client';
-import bcrypt from 'bcrypt';
+import Database from '../db';
 import passport from 'passport';
 
 export default (): Router => {
     const router = Router();
+    const db = new Database;
 
     router.post('/signup', (req, res) => {
         if (!req.body.user || !req.body.pwd) {
-            res.status(400).send('Invalid username/password.');
+            res.status(400).send('Both username and password required.');
             return;
         }
 
-        // TODO: Check for username/pwd validity here
+        // TODO: Check if pwd form is valid here
 
         const username = String(req.body.user).toLowerCase();
         const pwd = String(req.body.pwd);
 
         (async () => {
-            const connection = getConnection();
-            const user = await connection.manager.findOne(Client, {
-                where: [{
-                    name: username
-                }]
-            });
-
-            if (user) {
+            if (await db.findUserByName(username)) {
                 res.status(400).send('User already exists.');
                 return;
             }
-
-            const salt = await bcrypt.genSalt(11);
-            const pwdHash = await bcrypt.hash(pwd, salt);
-
-            const newUser = connection.manager.create(Client, {
-                name: username,
-                hash: pwdHash
-            });
-
-            await connection.manager.save(newUser);
-
-            res.status(201).send(`User ${username} created successfully.`);
-
+            else {
+                await db.createUser(username, pwd) ?
+                    res.status(201).send(`User ${username.toUpperCase()} was created successfully.`) :
+                    res.sendStatus(500);
+            }
         })().catch(err => {
             console.log(err);
             res.sendStatus(500);
@@ -50,50 +34,26 @@ export default (): Router => {
         });
     });
 
-    router.post('/login', (req, res) => {
-        if (!req.body.user || !req.body.pwd) {
-            res.sendStatus(400);
+    router.post('/login',
+        passport.authenticate('local'),
+        (req, res) => {
+            res.sendStatus(200);
+        });
+
+    router.post('/logout', (req, res) => {
+        if (!req.session.passport) {
+            res.status(400).send('Not logged in.');
             return;
         }
 
-        const username = String(req.body.user).toLowerCase();
-        const pwd = String(req.body.pwd);
-
-        (async () => {
-            const connection = getConnection();
-            const user = await connection.manager.findOne(Client, {
-                where: [{
-                    name: username
-                }]
-            });
-
-            if (!user) {
-                res.status(404).send('User not found.');
-                return;
+        req.session.destroy(err => {
+            if (err) {
+                console.log(err);
+                res.sendStatus(500);
             }
-
-            if (await bcrypt.compare(pwd, user.hash)) {
-                res.sendStatus(200);
-                return;
-            }
-            else {
-                res.status(400).send('Invalid password.');
-                return;
-            }
-
-        })().catch(err => {
-            console.log(err);
-            res.sendStatus(500);
-            return;
+            else res.sendStatus(200);
         });
     });
-
-    router.post('/test',
-        passport.authenticate('local'),
-        (req, res) => {
-            req.session.save();
-            res.sendStatus(200);
-        });
 
     return router;
 }

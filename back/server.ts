@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import express, { NextFunction, Request, Response } from 'express';
+import express from 'express';
 import http from 'http';
 import https from 'https';
 
@@ -11,18 +11,22 @@ import { SessionStorage } from './entities/SessionStorage';
 import { TypeormStore } from 'connect-typeorm';
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
-import { dbConnect } from './dbConnect';
 import { getConnection } from 'typeorm';
 import { Client, Note, Subject, Topic } from './entities/Entities';
 import bcrypt from 'bcrypt';
 import Database from './db';
 
-// Extended session interface
+// Extend express interfaces
 declare module 'express-session' {
     interface SessionData {
         passport?: {
-            user: string;
+            user?: string;
         };
+    }
+}
+declare module 'express' {
+    interface Request {
+        id?: string;
     }
 }
 
@@ -123,16 +127,13 @@ const sPort = 443;
                 maxAge: 3600000,
                 httpOnly: true,
                 secure: true
-            }
+            },
+            unset: 'destroy'
         }));
     })();
 
     app.use(passport.initialize());
     app.use(passport.session());
-
-    function sessionAuth(req: Request, res: Response, next: NextFunction) {
-
-    }
 
     // Testing
     app.post('/test',
@@ -151,7 +152,7 @@ const sPort = 443;
 
     app.get('/test3', (req, res) => {
         (async () => {
-            if (!req.session.passport) {
+            if (!req.session.passport || !req.session.passport.user) {
                 res.sendStatus(401);
                 return;
             };
