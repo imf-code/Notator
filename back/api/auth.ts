@@ -9,7 +9,7 @@ export default (): Router => {
 
     router.post('/signup', (req, res) => {
         if (!req.body.user || !req.body.pwd) {
-            res.sendStatus(400);
+            res.status(400).send('Invalid username/password.');
             return;
         }
 

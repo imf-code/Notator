@@ -3,8 +3,11 @@ import { Connection, createConnection, getConnection } from 'typeorm';
 import { Client, Note, Topic, Subject, SessionStorage } from './entities/Entities';
 
 export interface SSL {
+    /** CA certificate */
     ca: string,
+    /** Public key */
     key: string,
+    /** Public certificate */
     cert: string
 }
 
@@ -62,5 +65,57 @@ export default class Database {
                 name: user
             }]
         });
+    }
+
+    /** Find user by ID
+     * @param userId User ID
+     */
+    public async findUserById(userId: string): Promise<Client | undefined> {
+        if (!userId) return undefined;
+
+        return await getConnection()
+            .getRepository(Client)
+            .findOne({
+                where: [{
+                    id: userId
+                }]
+            });
+    }
+
+    /** Find user by username
+     * @param userName User name, will be converted to lowercase for comparisons
+     */
+    public async findUserByName(userName: string): Promise<Client | undefined> {
+        if (!userName) return undefined;
+
+        return await getConnection()
+            .getRepository(Client)
+            .findOne({
+                where: [{
+                    name: userName.toLowerCase()
+                }]
+            });
+    }
+
+    /**
+     * Return all subjects, topics and notes for given user
+     * @param userId User ID
+     */
+    public async findDataById(userId: string): Promise<Client | undefined> {
+        if (!userId) return undefined;
+
+        return await getConnection()
+            .getRepository(Client)
+            .findOne({
+                where: {
+                    id: userId
+                },
+                relations: [
+                    'subjects',
+                    'subjects.topics',
+                    'subjects.topics.notes'
+                ]
+            });
+
     }
 }

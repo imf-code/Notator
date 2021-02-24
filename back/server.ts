@@ -13,7 +13,7 @@ import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import { dbConnect } from './dbConnect';
 import { getConnection } from 'typeorm';
-import { Client } from './entities/Entities';
+import { Client, Note, Subject, Topic } from './entities/Entities';
 import bcrypt from 'bcrypt';
 import Database from './db';
 
@@ -28,9 +28,9 @@ declare module 'express-session' {
 
 // DEV
 require('dotenv').config();
-const key = fs.readFileSync(path.join(__dirname, '..', 'localhost.key'), 'utf8');
-const cert = fs.readFileSync(path.join(__dirname, '..', 'localhost.crt'), 'utf8');
-const ca = fs.readFileSync(path.join(__dirname, '..', 'myCA.crt'), 'utf8');
+const key = fs.readFileSync(path.join(__dirname, 'localhost.key'), 'utf8');
+const cert = fs.readFileSync(path.join(__dirname, 'localhost.crt'), 'utf8');
+const ca = fs.readFileSync(path.join(__dirname, 'myCA.crt'), 'utf8');
 const creds = { key: key, cert: cert };
 const dbCreds = { ca: ca, key: key, cert: cert }
 
@@ -131,7 +131,7 @@ const sPort = 443;
     app.use(passport.session());
 
     function sessionAuth(req: Request, res: Response, next: NextFunction) {
-        
+
     }
 
     // Testing
@@ -147,6 +147,81 @@ const sPort = 443;
             console.log(await db.findOne(req.session.passport?.user, true));
         })();
         res.sendStatus(200);
+    });
+
+    app.get('/test3', (req, res) => {
+        (async () => {
+            if (!req.session.passport) {
+                res.sendStatus(401);
+                return;
+            };
+
+            const userId = req.session.passport.user;
+
+            const user = await db.findUserById(userId);
+            if (!user) {
+                res.sendStatus(404);
+                return;
+            }
+
+            // const subjects = await getConnection()
+            //     .getRepository(Client)
+            //     .findOne({
+            //         where: { id: userId },
+            //         relations: ['subjects', 'subjects.topics', 'subjects.topics.notes']
+            //     });
+            const data = await db.findDataById(userId);
+
+            console.log(JSON.stringify(data));
+
+            res.status(200).send(data);
+        })();
+    });
+
+    app.post('/addsubj', (req, res) => {
+        (async () => {
+            if (!req.session.passport) {
+                res.sendStatus(400);
+                return;
+            }
+
+            const newSubject = await getConnection()
+                .createQueryBuilder()
+                .insert()
+                .into(Subject)
+                .values([{
+                    client: req.session.passport.user,
+                    name: 'Another Test Subject',
+                }])
+                .execute();
+
+            console.log(newSubject);
+            res.sendStatus(201);
+        })();
+    });
+
+    app.post('/addtest', (req, res) => {
+        (async () => {
+            if (!req.session.passport) {
+                res.sendStatus(400);
+                return;
+            }
+
+            const newSubject = await getConnection()
+                .createQueryBuilder()
+                .insert()
+                .into(Note)
+                .values([{
+                    client: req.session.passport.user,
+                    subject: 1,
+                    topic: 1,
+                    text: 'Test note.'
+                }])
+                .execute();
+
+            console.log(newSubject);
+            res.sendStatus(201);
+        })();
     });
 
     // Routing    
