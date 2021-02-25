@@ -15,13 +15,19 @@ export class Client {
     @Column('varchar')
     hash!: string;
 
-    @OneToMany(() => Subject, subject => subject.client)
+    @OneToMany(() => Subject, subject => subject.client, {
+        cascade: ['remove']
+    })
     subjects!: Subject[];
-    
-    @OneToMany(() => Topic, topic => topic.client)
+
+    @OneToMany(() => Topic, topic => topic.client, {
+        cascade: ['remove']
+    })
     topics!: Topic[];
-    
-    @OneToMany(() => Note, note => note.client)
+
+    @OneToMany(() => Note, note => note.client, {
+        cascade: ['remove']
+    })
     notes!: Note[];
-    
+
 }

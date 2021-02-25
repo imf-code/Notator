@@ -12,14 +12,19 @@ export class Subject {
     @Column('varchar')
     name!: string;
 
-    @ManyToOne(() => Client, user => user.subjects)
+    @ManyToOne(() => Client, user => user.subjects, {
+        onDelete: 'CASCADE'
+    })
     client!: string;
 
-    @OneToMany(() => Topic, topic => topic.subject)
+    @OneToMany(() => Topic, topic => topic.subject, {
+        cascade: ['remove']
+    })
     topics!: Topic[];
 
-    @OneToMany(() => Note, note => note.subject)
+    @OneToMany(() => Note, note => note.subject, {
+        cascade: ['remove']
+    })
     notes!: Note[];
-
 
 }

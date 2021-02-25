@@ -46,28 +46,6 @@ export default class Database {
         });
     }
 
-    /** Find user
-     * @param user Username by default or ID if second param is true
-     * @param id Whether to look for ID instead
-     */
-    public async findOne(user: string | undefined, id: boolean = false): Promise<Client | undefined> {
-        if (!user) return undefined;
-
-        const connection = getConnection();
-
-        if (id) return await connection.manager.findOne(Client, {
-            where: [{
-                id: user
-            }]
-        });
-
-        else return await connection.manager.findOne(Client, {
-            where: [{
-                name: user
-            }]
-        });
-    }
-
     /** Find user by ID
      * @param userId User ID
      */
@@ -171,6 +149,26 @@ export default class Database {
     }
 
     /**
+     * Rename a subject
+     * @param userId User ID
+     * @param subId Subject ID
+     * @param subName New name for the subject
+     */
+    public async renameSubject(userId: string, subId: number, subName: string) {
+        return await getConnection()
+            .createQueryBuilder()
+            .update(Subject)
+            .set({
+                name: subName
+            })
+            .where({
+                client: userId,
+                id: subId
+            })
+            .execute();
+    }
+
+    /**
      * Delete subject by ID
      * @param userId User ID
      * @param subId Subject ID
@@ -184,6 +182,154 @@ export default class Database {
             .where({
                 client: userId,
                 id: subId
+            })
+            .execute();
+    }
+
+    /**
+     * Create new topic
+     * @param userId User ID
+     * @param subId Subject ID
+     * @param topic Name of the new topic 
+     */
+    public async createTopic(userId: string, subId: number, topic: string) {
+
+        return await getConnection()
+            .createQueryBuilder()
+            .insert()
+            .into(Topic)
+            .values([{
+                client: userId,
+                subject: subId,
+                name: topic
+            }])
+            .execute();
+    }
+
+    /**
+     * Rename a topic
+     * @param userId User ID
+     * @param topicId Topic ID
+     * @param topicName New name for the topic
+     */
+    public async renameTopic(userId: string, topicId: number, topicName: string) {
+        return await getConnection()
+            .createQueryBuilder()
+            .update(Topic)
+            .set({
+                name: topicName
+            })
+            .where({
+                client: userId,
+                id: topicId
+            })
+            .execute();
+    }
+
+    /**
+     * Delete topic by ID
+     * @param userId User ID
+     * @param topicId Topic ID
+     */
+    public async delTopic(userId: string, topicId: number) {
+
+        return await getConnection()
+            .createQueryBuilder()
+            .delete()
+            .from(Topic)
+            .where({
+                client: userId,
+                id: topicId
+            })
+            .execute();
+    }
+
+    /**
+     * Create new note
+     * @param userId User ID
+     * @param subId Subject ID
+     * @param topicId Topic ID
+     * @param note Note text
+     */
+    public async createNote(userId: string, subId: number, topicId: number, note: string) {
+
+        return await getConnection()
+            .createQueryBuilder()
+            .insert()
+            .into(Note)
+            .values([{
+                client: userId,
+                subject: subId,
+                topic: topicId,
+                text: note
+            }])
+            .execute();
+    }
+
+    /**
+     * Update the note text.
+     * @param userId User ID
+     * @param noteId Note ID
+     * @param newNote New text for the note.
+     */
+    public async updateNote(userId: string, noteId: number, newNote: string) {
+
+        return await getConnection()
+            .createQueryBuilder()
+            .update(Note)
+            .set({
+                text: newNote
+            })
+            .where({
+                client: userId,
+                id: noteId
+            })
+            .execute();
+    }
+
+    /**
+     * Move note from one topic to another
+     * @param userId User ID
+     * @param topicId Topic ID
+     * @param noteId Note ID
+     */
+    public async moveNote(userId: string, topicId: number, noteId: number) {
+        const ownsTargetTopic = await getConnection()
+            .getRepository(Topic)
+            .findOne({
+                client: userId,
+                id: topicId
+            });
+
+        if (ownsTargetTopic) {
+            return await getConnection()
+                .createQueryBuilder()
+                .update(Note)
+                .set({
+                    topic: topicId
+                })
+                .where({
+                    client: userId,
+                    id: noteId
+                })
+                .execute();
+        }
+    }
+
+    /**
+     * Delete note by ID
+     * @param userId User ID
+     * @param noteId Note ID
+     */
+    public async delNote(userId: string, noteId: number) {
+
+        return await getConnection()
+            .createQueryBuilder()
+            .delete()
+            .from(Note)
+            .where({
+                client: userId,
+                id: noteId
             })
             .execute();
     }

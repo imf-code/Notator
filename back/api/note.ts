@@ -27,22 +27,31 @@ export default (): Router => {
         });
     });
 
-    router.post('/subj', (req: Request, res) => {
+    router.post('/', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
             return;
         }
-
-        if (!req.body.subject) {
-            res.status(400).send('Enter name for new subject.');
+        if (!req.body.note) {
+            res.status(400).send('No note provided.');
+            return;
+        }
+        if (!req.body.topicId) {
+            res.status(400).send('No topic ID provided.');
+            return;
+        }
+        if (!req.body.subId) {
+            res.status(400).send('No subject ID provided.');
             return;
         }
 
         const userId = req.id;
-        const subject = String(req.body.subject);
+        const subId = Number(req.body.subId);
+        const topicId = Number(req.body.topicId);
+        const note = String(req.body.note);
 
         (async () => {
-            const insert = await db.createSubject(userId, subject);
+            const insert = await db.createNote(userId, subId, topicId, note);
 
             res.status(201).send(insert.identifiers);
 
@@ -53,21 +62,91 @@ export default (): Router => {
         });
     });
 
-    router.delete('/subj', (req: Request, res) => {
-        if (!req.id || !req.body.subject) {
+    router.delete('/', (req: Request, res) => {
+        if (!req.id) {
             res.sendStatus(500);
+            return;
+        }
+        if (!req.body.noteId) {
+            res.status(400).send('No note ID provided.');
             return;
         }
 
         const userId = req.id;
-        const subId = req.body.subject;
+        const noteId = Number(req.body.noteId);
 
         (async () => {
-            const result = await db.delSubject(userId, subId);
+            const result = await db.delNote(userId, noteId);
 
             result.affected ?
-                res.status(200).send({ id: subId }) :
-                res.status(400).send('No such subject.');
+                res.status(200).send({ id: noteId }) :
+                res.status(400).send('No such note.');
+
+        })().catch(err => {
+            console.log(err);
+            res.sendStatus(500);
+            return;
+        });
+    });
+
+    router.patch('/', (req: Request, res) => {
+        if (!req.id) {
+            res.sendStatus(500);
+            return;
+        }
+        if (!req.body.note) {
+            res.status(400).send('No new note provided.');
+            return;
+        }
+        if (!req.body.noteId) {
+            res.status(400).send('No note ID provided.');
+            return;
+        }
+
+        const userId = req.id;
+        const newNote = String(req.body.note);
+        const noteId = Number(req.body.noteId);
+
+        (async () => {
+            const update = await db.updateNote(userId, noteId, newNote);
+
+            update.affected ?
+                res.status(200).send({ id: noteId }) :
+                res.status(400).send('No such note.');
+
+        })().catch(err => {
+            console.log(err);
+            res.sendStatus(500);
+            return;
+        });
+    });
+
+    router.patch('/move', (req: Request, res) => {
+        if (!req.id) {
+            res.sendStatus(500);
+            return;
+        }
+        if (!req.body.topicId) {
+            res.status(400).send('No topic ID provided.');
+            return;
+        }
+        if (!req.body.noteId) {
+            res.status(400).send('No note ID provided.');
+            return;
+        }
+
+        const userId = req.id;
+        const topicId = Number(req.body.topicId);
+        const noteId = Number(req.body.noteId);
+
+        (async () => {
+            const update = await db.moveNote(userId, topicId, noteId);
+
+
+            update && update.affected ?
+                res.status(200).send({ id: noteId }) :
+                res.status(400).send('No such note.');
+
         })().catch(err => {
             console.log(err);
             res.sendStatus(500);

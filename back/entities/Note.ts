@@ -11,14 +11,20 @@ export class Note {
 
     @Column('text')
     text!: string;
-    
-    @ManyToOne(() => Client, user => user.notes)
+
+    @ManyToOne(() => Client, user => user.notes, {
+        onDelete: 'CASCADE'
+    })
     client!: string;
 
-    @ManyToOne(() => Subject, subject => subject.notes)
+    @ManyToOne(() => Subject, subject => subject.notes, {
+        onDelete: 'CASCADE'
+    })
     subject!: number;
 
-    @ManyToOne(() => Topic, topic => topic.notes)
+    @ManyToOne(() => Topic, topic => topic.notes, {
+        onDelete: 'CASCADE'
+    })
     topic!: number;
 
 }

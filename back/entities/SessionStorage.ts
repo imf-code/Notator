@@ -12,4 +12,5 @@ export class SessionStorage implements ISession {
 
     @Column('text')
     public json: string = '';
+    
 }

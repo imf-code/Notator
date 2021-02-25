@@ -143,13 +143,6 @@ const sPort = 443;
             res.sendStatus(200);
         });
 
-    app.get('/test2', (req, res) => {
-        (async () => {
-            console.log(await db.findOne(req.session.passport?.user, true));
-        })();
-        res.sendStatus(200);
-    });
-
     app.get('/test3', (req, res) => {
         (async () => {
             if (!req.session.passport || !req.session.passport.user) {
