@@ -1,22 +1,23 @@
 import path from 'path';
 import fs from 'fs';
-import express from 'express';
 import http from 'http';
 import https from 'https';
 
-import routeApi from './api/api';
-import bodyParser from 'body-parser';
+import express from 'express';
 import ExpressSession from 'express-session';
-import { SessionStorage } from './entities/SessionStorage';
-import { TypeormStore } from 'connect-typeorm';
+import bodyParser from 'body-parser';
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import { getConnection } from 'typeorm';
-import { Client, Note, Subject, Topic } from './entities/Entities';
+import { TypeormStore } from 'connect-typeorm';
 import bcrypt from 'bcrypt';
+
+import routeApi from './api/api';
+import { SessionStorage } from './entities/SessionStorage';
+import { Client } from './entities/Entities';
 import Database from './db';
 
-// Extend express interfaces
+// Extend express request interfaces
 declare module 'express-session' {
     interface SessionData {
         passport?: {
@@ -40,8 +41,8 @@ const dbCreds = { ca: ca, key: key, cert: cert }
 
 // Server setup
 const app = express();
-const port = 80;
-const sPort = 443;
+const httpPort = 80;
+const httpsPort = 443;
 
 (async () => {
 
@@ -53,20 +54,14 @@ const sPort = 443;
     passport.use(new LocalStrategy(
         (username, password, done) => {
             (async () => {
-                const connection = getConnection();
-                const user = await connection.manager.findOne(Client, {
-                    where: [{
-                        name: username
-                    }]
-                });
+                const user = await db.findUserByName(username);
 
                 if (!user) {
                     done(null, false, { message: 'No such user.' });
                     return;
                 }
-
-                if (await bcrypt.compare(password, user.hash)) {
-                    done(null, user)
+                else if (await bcrypt.compare(password, user.hash)) {
+                    done(null, user);
                     return;
                 }
                 else {
@@ -135,101 +130,26 @@ const sPort = 443;
     app.use(passport.initialize());
     app.use(passport.session());
 
-    // Testing
-    app.post('/test',
-        passport.authenticate('local'),
-        (req, res) => {
-            console.log(req.session);
-            res.sendStatus(200);
-        });
-
-    app.get('/test3', (req, res) => {
-        (async () => {
-            if (!req.session.passport || !req.session.passport.user) {
-                res.sendStatus(401);
-                return;
-            };
-
-            const userId = req.session.passport.user;
-
-            const user = await db.findUserById(userId);
-            if (!user) {
-                res.sendStatus(404);
-                return;
-            }
-
-            // const subjects = await getConnection()
-            //     .getRepository(Client)
-            //     .findOne({
-            //         where: { id: userId },
-            //         relations: ['subjects', 'subjects.topics', 'subjects.topics.notes']
-            //     });
-            const data = await db.findDataById(userId);
-
-            console.log(JSON.stringify(data));
-
-            res.status(200).send(data);
-        })();
-    });
-
-    app.post('/addsubj', (req, res) => {
-        (async () => {
-            if (!req.session.passport) {
-                res.sendStatus(400);
-                return;
-            }
-
-            const newSubject = await getConnection()
-                .createQueryBuilder()
-                .insert()
-                .into(Subject)
-                .values([{
-                    client: req.session.passport.user,
-                    name: 'Another Test Subject',
-                }])
-                .execute();
-
-            console.log(newSubject);
-            res.sendStatus(201);
-        })();
-    });
-
-    app.post('/addtest', (req, res) => {
-        (async () => {
-            if (!req.session.passport) {
-                res.sendStatus(400);
-                return;
-            }
-
-            const newSubject = await getConnection()
-                .createQueryBuilder()
-                .insert()
-                .into(Note)
-                .values([{
-                    client: req.session.passport.user,
-                    subject: 1,
-                    topic: 1,
-                    text: 'Test note.'
-                }])
-                .execute();
-
-            console.log(newSubject);
-            res.sendStatus(201);
-        })();
+    // Redirect to https (doesn't work with Heroku?)
+    app.use(function (req, res, next) {
+        if (!req.secure) {
+            return res.redirect(301, 'https://' + req.hostname + req.url);
+        }
+        next();
     });
 
     // Routing    
-    app.use(express.static(path.join(__dirname, 'test')));
+    app.use(express.static(path.join(__dirname, 'test'))); // DEV
     app.use('/api', routeApi());
 
     // Start server
     const httpServer = http.createServer(app);
     const httpsServer = https.createServer(creds, app);
-    httpsServer.listen(sPort, () => {
-        console.log('HTTPS server running on port: ' + sPort);
+    httpsServer.listen(httpsPort, () => {
+        console.log('HTTPS server running on port: ' + httpsPort);
     });
-    httpServer.listen(port, () => {
-        console.log('HTTP server running on port: ' + port);
+    httpServer.listen(httpPort, () => {
+        console.log('HTTP server running on port: ' + httpPort);
     });
 
 })();
