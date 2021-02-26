@@ -2,8 +2,8 @@ import { Router, Request } from 'express';
 import Database from '../db';
 
 export default (): Router => {
-    const db = new Database;
     const router = Router();
+    const db = new Database;
 
     router.post('/', (req: Request, res) => {
         if (!req.id) {

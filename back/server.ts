@@ -139,7 +139,7 @@ const httpsPort = 443;
     });
 
     // Routing    
-    app.use(express.static(path.join(__dirname, 'test'))); // DEV
+    // app.use(express.static(path.join(__dirname, 'test'))); // DEV
     app.use('/api', routeApi());
 
     // Start server

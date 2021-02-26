@@ -6,7 +6,7 @@ import bcrypt from 'bcrypt';
 export interface SSL {
     /** CA certificate */
     ca: string,
-    /** Public key */
+    /** Private key */
     key: string,
     /** Public certificate */
     cert: string
