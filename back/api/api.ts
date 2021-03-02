@@ -8,8 +8,8 @@ import topic from './topic';
 export default (): Router => {
     const router = Router();
     router.use('/auth', authRoutes());
-    router.use('/note', auth, note());
     router.use('/subject', auth, subject());
     router.use('/topic', auth, topic());
+    router.use('/note', auth, note());
     return router;
 }

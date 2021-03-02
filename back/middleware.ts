@@ -10,6 +10,6 @@ export function auth(req: Request, res: Response, next: NextFunction) {
     }
     else {
         // TODO: handle not logged in properly
-        res.status(400).send('Login required.');
+        res.status(401).send('Login required.');
     }
 }
