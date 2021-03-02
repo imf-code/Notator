@@ -7,15 +7,15 @@ export default (): Router => {
     const db = new Database;
 
     router.post('/signup', (req, res) => {
-        if (!req.body.user || !req.body.pwd) {
+        if (!req.body.username || !req.body.password) {
             res.status(400).send('Both username and password required.');
             return;
         }
 
         // TODO: Check if pwd form is valid here
 
-        const username = String(req.body.user).toLowerCase();
-        const pwd = String(req.body.pwd);
+        const username = String(req.body.username).toLowerCase();
+        const pwd = String(req.body.password);
 
         (async () => {
             if (await db.findUserByName(username)) {
@@ -39,6 +39,15 @@ export default (): Router => {
         (req, res) => {
             res.sendStatus(200);
         });
+
+    router.get('/login_status',
+        (req, res) => {
+            if (!req.session.passport) {
+                res.status(200).send(false);
+            }
+            else res.status(200).send(true);
+        }
+    )
 
     router.post('/logout', (req, res) => {
         if (!req.session.passport) {
