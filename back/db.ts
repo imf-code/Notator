@@ -112,7 +112,6 @@ export default class Database {
             const connection = getConnection();
 
             const salt = await bcrypt.genSalt(11);
-            console.log(salt);
             const pwdHash = await bcrypt.hash(pwd, salt);
 
             const newUser = connection.manager.create(Client, {
