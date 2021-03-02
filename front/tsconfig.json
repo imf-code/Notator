@@ -26,5 +26,5 @@
   },
   "include": [
     "src"
-, "server/server.ts", "entities"  ]
+, "server/server.ts", "entities", "deprecated/Login.tsx"  ]
 }

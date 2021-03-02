@@ -1,12 +1,18 @@
 import axios from 'axios';
 
-export default function Logout() {
+interface ILogout {
+    setLoginStatus?: React.Dispatch<React.SetStateAction<boolean>>
+}
+
+export default function Logout(props: ILogout) {
 
     return (
         <button onClick={() => {
             axios.post('/api/auth/logout')
                 .then(resp => {
-                    if (resp.status === 200) return; // TODO, handle logout properly
+                    if (resp.status === 200) {
+                        if (props.setLoginStatus) props.setLoginStatus(false);
+                    }
                     else alert('Something went worng with your logout attempt. Please try again later.');
                 })
                 .catch(err => {
