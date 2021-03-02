@@ -27,7 +27,7 @@ export default function Login(props: ILogin): JSX.Element {
         params.append('password', props.password);
         axios.post(`/api/auth/login`, params)
             .then((resp) => {
-                if (resp.status === 200) props.setMessage('Login successful.');
+                if (resp.status === 200) props.setMessage('Login successful.'); // TODO, handle login properly
                 else props.setMessage('Something went wrong with your login attempt. Please try again later.');
             })
             .catch(err => {
