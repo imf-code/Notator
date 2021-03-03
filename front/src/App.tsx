@@ -10,6 +10,7 @@ function App() {
   const [noteData, setNoteData] = useState<ISubject[] | undefined>();
   const [loginStatus, setLoginStatus] = useState<boolean>(false);
 
+  // Check if user is currently logged in on server using session cookie.
   useEffect(() => {
     axios.get('/api/auth/login_status')
       .then(resp => {
@@ -23,6 +24,7 @@ function App() {
       })
   }, []);
 
+  // GET notes when user logs in and clear notes from local memory on logout.
   useEffect(() => {
     if (loginStatus && !noteData) {
       axios.get('/api/note')

@@ -5,6 +5,7 @@ interface ILoginFormProps {
     setLoginStatus?: React.Dispatch<React.SetStateAction<boolean>>
 }
 
+/** Component for handling login/signup. */
 export default function LoginForm(props: ILoginFormProps): JSX.Element {
     const [username, setUsername] = useState<string>('');
     const [password, setPassword] = useState<string>('');
@@ -13,12 +14,12 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
     const loginRef = useRef<HTMLInputElement>(null);
     const signupRef = useRef<HTMLButtonElement>(null);
 
-    async function onLogin(user: string, pwd: string) {
-        if (!user) {
+    async function onLogin(username: string, password: string) {
+        if (!username) {
             setMessage('Username required.');
             return;
         }
-        if (!pwd) {
+        if (!password) {
             setMessage('Password required.');
             return;
         }
@@ -41,8 +42,8 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
             }
 
             const params = new URLSearchParams();
-            params.append('username', user);
-            params.append('password', pwd);
+            params.append('username', username);
+            params.append('password', password);
             axios.post('/api/auth/login', params)
                 .then((resp) => {
                     if (resp.status === 200) {
@@ -65,29 +66,29 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
         if (loginRef.current) loginRef.current.disabled = false;
     }
 
-    async function onSignup(usernameState: string, passwordState: string) {
-        if (!usernameState) {
+    async function onSignup(username: string, password: string) {
+        if (!username) {
             setMessage('Username required.');
             return;
         }
-        if (!passwordState) {
+        if (!password) {
             setMessage('Password required.');
             return;
         }
 
-        const username = usernameState;
-        const password = passwordState;
+        const storedUsername = username;
+        const storedPassword = password;
 
         if (signupRef.current) signupRef.current.disabled = true;
 
         axios.post(`/api/auth/signup`, {
-            username: username,
-            password: password
+            username: storedUsername,
+            password: storedPassword
         })
             .then((resp) => {
                 if (resp.status === 201) {
                     setMessage(resp.data);
-                    onLogin(username, password);
+                    onLogin(storedUsername, storedPassword);
                 }
                 else setMessage('Something went wrong with your signup attempt. Please try again later.');
             })
