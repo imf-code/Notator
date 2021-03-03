@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { useRef, useState } from 'react';
 
-interface ILoginForm {
+interface ILoginFormProps {
     setLoginStatus?: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-export default function LoginForm(props: ILoginForm): JSX.Element {
+export default function LoginForm(props: ILoginFormProps): JSX.Element {
     const [username, setUsername] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [message, setMessage] = useState<string>('');
