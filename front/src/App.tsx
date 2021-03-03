@@ -2,23 +2,8 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import LoginForm from './LoginForm';
 import Logout from './Logout';
-
-interface ISubject {
-  id: number,
-  name: string,
-  topics: ITopic[]
-}
-
-interface ITopic {
-  id: number,
-  name: string,
-  notes: INote[]
-}
-
-interface INote {
-  id: number,
-  text: string
-}
+import Subjects from './Subjects';
+import { ISubject } from './Interfaces';
 
 function App() {
 
@@ -69,7 +54,7 @@ function App() {
       <LoginForm setLoginStatus={setLoginStatus} />
       <Logout setLoginStatus={setLoginStatus} />
       <br />
-      {JSON.stringify(noteData)}
+      <Subjects data={noteData} />
     </div>
   );
 }
