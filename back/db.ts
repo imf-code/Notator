@@ -77,7 +77,7 @@ export default class Database {
     }
 
     /**
-     * Return all subjects, topics and notes for given user
+     * Return all subjects, topics and notes for given user **DEPRECATED**
      * @param userId User ID
      */
     public async findDataById(userId: string): Promise<Client | undefined> {
