@@ -40,6 +40,7 @@ export default (): Router => {
             res.sendStatus(200);
         });
 
+    // DEPRECATED
     router.get('/login_status',
         (req, res) => {
             if (!req.session.passport) {

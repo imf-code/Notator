@@ -1,26 +1,32 @@
 import axios from 'axios';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ISubject } from './Interfaces';
-import Topics from './Topics';
+import NoteTable from './NoteTable';
 import Subject from './Subject';
-
-interface ISubjectsProps {
-    data: ISubject[] | undefined;
-}
 
 /**
  * Component for displaying, selecting and manipulating subjects and the topics/notes under selected subject.
  */
-export default function Subjects(props: ISubjectsProps) {
+export default function Subjects() {
 
     const [currentSubject, setCurrentSubject] = useState<ISubject | undefined>(undefined);
     const [localSubjects, setLocalSubjects] = useState<ISubject[] | undefined>(undefined);
     const [newSubject, setNewSubject] = useState<string>('');
 
     useEffect(() => {
-        if (!props.data) return;
-        else setLocalSubjects(props.data);
-    }, [props.data]);
+        axios.get('/api/subject/all')
+            .then(resp => {
+                if (resp.status === 200) {
+                    setLocalSubjects(resp.data);
+                }
+            })
+            .catch(err => {
+                console.log(err);
+                alert('There was a problem retrieving your subject list. Please try again later.');
+            });
+    },
+        []
+    );
 
     function addSubject(name: string) {
         axios.post('/api/subject', {
@@ -45,8 +51,7 @@ export default function Subjects(props: ISubjectsProps) {
     }
 
     const renameSubject = useCallback(async (id: number, newName: string) => {
-        axios.patch('/api/subject', {
-            subId: id,
+        axios.patch(`/api/subject/${id}`, {
             name: newName
         }).then(resp => {
             if (resp.status === 200) {
@@ -71,30 +76,27 @@ export default function Subjects(props: ISubjectsProps) {
     );
 
     const deleteSubject = useCallback(async (id: number) => {
-        axios.delete('/api/subject', {
-            data: {
-                subId: id
-            }
-        }).then(resp => {
-            if (resp.status !== 200) {
-                throw new Error();
-            }
+        axios.delete(`/api/subject/${id}`)
+            .then(resp => {
+                if (resp.status !== 200) {
+                    throw new Error();
+                }
 
-            if (!localSubjects) {
-                alert('There was an error while attempting to delete the subject. Please try refreshing the page.');
-                return;
-            }
+                if (!localSubjects) {
+                    alert('There was an error while attempting to delete the subject. Please try refreshing the page.');
+                    return;
+                }
 
-            const newLocalSubjects = localSubjects.filter(subject => {
-                return subject.id !== id;
+                const newLocalSubjects = localSubjects.filter(subject => {
+                    return subject.id !== id;
+                });
+
+                setLocalSubjects(newLocalSubjects);
+
+            }).catch(err => {
+                console.log(err);
+                alert('There was an error while attempting to delete the subject. Please try again later.');
             });
-
-            setLocalSubjects(newLocalSubjects);
-
-        }).catch(err => {
-            console.log(err);
-            alert('There was an error while attempting to delete the subject. Please try again later.');
-        });
     },
         [localSubjects]
     );
@@ -127,7 +129,7 @@ export default function Subjects(props: ISubjectsProps) {
                 <input type='submit' value='Add' />
             </form>
             {subjectElements}
-            {currentSubject && <Topics data={currentSubject} />}
+            {currentSubject && <NoteTable subId={currentSubject.id} />}
         </div>
     );
 }

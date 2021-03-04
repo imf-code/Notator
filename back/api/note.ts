@@ -5,6 +5,7 @@ export default (): Router => {
     const router = Router();
     const db = new Database;
 
+    // DEPRECATED
     router.get('/', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);

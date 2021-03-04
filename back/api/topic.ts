@@ -5,21 +5,17 @@ export default (): Router => {
     const router = Router();
     const db = new Database;
 
-    router.get('/all', (req: Request, res) => {
+    router.get('/:subId/with-notes', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
             return;
         }
-        if (!req.body.subId) {
-            res.status(400).send('Subject ID required.');
-            return;
-        }
 
         const userId = req.id;
-        const subId = Number(req.body.subId);
+        const subId = Number(req.params.subId);
 
         (async () => {
-            const subData = await db.findTopics(userId, subId);
+            const subData = await db.findTopicsAndNotes(userId, subId);
 
             if (!subData) {
                 res.sendStatus(500);

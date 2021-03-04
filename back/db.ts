@@ -77,7 +77,8 @@ export default class Database {
     }
 
     /**
-     * Return all subjects, topics and notes for given user **DEPRECATED**
+     * **DEPRECATED**
+     * Return all subjects, topics and notes for given user.
      * @param userId User ID
      */
     public async findDataById(userId: string): Promise<Client | undefined> {
@@ -204,6 +205,7 @@ export default class Database {
     }
 
     /**
+     * **DEPRECATED**
      * Find all topics belonging to an user under given subject.
      * @param userId User ID
      * @param subId Subject ID
@@ -219,6 +221,27 @@ export default class Database {
                 },
                 relations: [
                     'topics'
+                ]
+            });
+    }
+
+    /**
+     * Find all topics and notes belonging to an user under given subject.
+     * @param userId User ID
+     * @param subId Subject ID
+     */
+    public async findTopicsAndNotes(userId: string, subId: number) {
+
+        return await getConnection()
+            .getRepository(Subject)
+            .findOne({
+                where: {
+                    client: userId,
+                    id: subId
+                },
+                relations: [
+                    'topics',
+                    'topics.notes'
                 ]
             });
     }

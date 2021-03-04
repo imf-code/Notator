@@ -1,10 +1,15 @@
+export interface IUser {
+    /** Username */
+    name: string;
+}
+
 export interface ISubject {
     /** Database ID */
     id: number,
     /** Name of the subject */
     name: string,
     /** Array of topics under the subject */
-    topics: ITopic[]
+    topics?: ITopic[]
 }
 
 export interface ITopic {
@@ -13,7 +18,7 @@ export interface ITopic {
     /** Name of the Topic */
     name: string,
     /** Array of notes under the topic */
-    notes: INote[]
+    notes?: INote[]
 }
 
 export interface INote {

@@ -56,23 +56,19 @@ export default (): Router => {
         });
     });
 
-    router.patch('/', (req: Request, res) => {
+    router.patch('/:subId', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
             return;
         }
         if (!req.body.name) {
-            res.status(400).send('No name provided.');
-            return;
-        }
-        if (!req.body.subId) {
-            res.status(400).send('No subject ID provided.');
+            res.status(400).send('New name required.');
             return;
         }
 
         const userId = req.id;
         const newName = String(req.body.name);
-        const subId = Number(req.body.subId);
+        const subId = Number(req.params.subId);
 
         (async () => {
             const update = await db.renameSubject(userId, subId, newName);
@@ -88,18 +84,14 @@ export default (): Router => {
         });
     });
 
-    router.delete('/', (req: Request, res) => {
+    router.delete('/:subId', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
             return;
         }
-        if (!req.body.subId) {
-            res.status(400).send('No subject ID provided.');
-            return;
-        }
 
         const userId = req.id;
-        const subId = Number(req.body.subId);
+        const subId = Number(req.params.subId);
 
         (async () => {
             const result = await db.delSubject(userId, subId);

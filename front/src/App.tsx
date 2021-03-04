@@ -3,60 +3,66 @@ import React, { useEffect, useState } from 'react';
 import LoginForm from './LoginForm';
 import Logout from './Logout';
 import Subjects from './Subjects';
-import { ISubject } from './Interfaces';
+import { IUser } from './Interfaces';
 
 function App() {
 
-  const [noteData, setNoteData] = useState<ISubject[] | undefined>();
+  const [userData, setUserData] = useState<IUser | undefined>(undefined);
   const [loginStatus, setLoginStatus] = useState<boolean>(false);
 
   // Check if user is currently logged in on server using session cookie.
   useEffect(() => {
-    axios.get('/api/auth/login_status')
+    axios.get('/api/user')
       .then(resp => {
         if (resp.status === 200) {
-          setLoginStatus(resp.data);
+          setLoginStatus(true);
+          setUserData(resp.data);
         }
       })
       .catch(err => {
-        console.log(err);
-        alert('There was a problem connecting to the note server. The service may be down. Please try again later.');
+        if (err.response.status === 401) return;
+        else {
+          console.log(err);
+          alert('There was a problem connecting to the note server. The service may be down. Please try again later.');
+        }
       })
   }, []);
 
   // GET notes when user logs in and clear notes from local memory on logout.
   useEffect(() => {
-    if (loginStatus && !noteData) {
-      axios.get('/api/note')
+    if (loginStatus && !userData) {
+      axios.get('/api/user')
         .then(resp => {
           if (resp.status === 200) {
-            setNoteData(resp.data);
+            setUserData(resp.data);
             return;
           }
-          else return;
         })
         .catch(err => {
           if (err.response.status === 401) return;
           else {
-            alert('Something went wrong while fetching your notes. The service may be down. Please try again later.');
+            alert('Something went wrong while fetching your user data. The service may be down. Please try again later.');
             return;
           }
         });
     }
-    else if (!loginStatus && noteData) {
-      setNoteData(undefined);
+    else if (!loginStatus && userData) {
+      setUserData(undefined);
       return;
     }
     else return;
 
-  }, [loginStatus, noteData]);
+  },
+    [loginStatus, userData]
+  );
 
   return (
     <div>
+      {userData && `Hello, user ${userData.name}`}
       <LoginForm setLoginStatus={setLoginStatus} />
       <Logout setLoginStatus={setLoginStatus} />
       <br />
-      <Subjects data={noteData} />
+      {loginStatus && <Subjects />}
     </div>
   );
 }
