@@ -130,6 +130,24 @@ export default class Database {
     };
 
     /**
+     * Find all subjects for a user by ID.
+     * @param userId User ID
+     */
+    public async findSubjects(userId: string) {
+
+        return await getConnection()
+            .getRepository(Client)
+            .findOne({
+                where: {
+                    id: userId
+                },
+                relations: [
+                    'subjects'
+                ]
+            });
+    }
+
+    /**
      * Create new subject
      * @param userId User ID
      * @param subj Name of the new subject
@@ -183,6 +201,26 @@ export default class Database {
                 id: subId
             })
             .execute();
+    }
+
+    /**
+     * Find all topics belonging to an user under given subject.
+     * @param userId User ID
+     * @param subId Subject ID
+     */
+    public async findTopics(userId: string, subId: number) {
+
+        return await getConnection()
+            .getRepository(Subject)
+            .findOne({
+                where: {
+                    client: userId,
+                    id: subId
+                },
+                relations: [
+                    'topics'
+                ]
+            });
     }
 
     /**

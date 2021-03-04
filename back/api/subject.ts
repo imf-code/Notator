@@ -5,6 +5,32 @@ export default (): Router => {
     const router = Router();
     const db = new Database;
 
+    router.get('/all', (req: Request, res) => {
+        if (!req.id) {
+            res.sendStatus(500);
+            return;
+        }
+
+        const userId = req.id;
+
+        (async () => {
+            const userData = await db.findSubjects(userId);
+
+            if (!userData) {
+                res.sendStatus(500);
+                return;
+            }
+            else {
+                res.status(200).send(userData.subjects);
+            }
+
+        })().catch(err => {
+            console.log(err);
+            res.sendStatus(500);
+            return;
+        });
+    });
+
     router.post('/', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);

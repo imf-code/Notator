@@ -5,6 +5,37 @@ export default (): Router => {
     const router = Router();
     const db = new Database;
 
+    router.get('/all', (req: Request, res) => {
+        if (!req.id) {
+            res.sendStatus(500);
+            return;
+        }
+        if (!req.body.subId) {
+            res.status(400).send('Subject ID required.');
+            return;
+        }
+
+        const userId = req.id;
+        const subId = Number(req.body.subId);
+
+        (async () => {
+            const subData = await db.findTopics(userId, subId);
+
+            if (!subData) {
+                res.sendStatus(500);
+                return;
+            }
+            else {
+                res.status(200).send(subData.topics);
+            }
+
+        })().catch(err => {
+            console.log(err);
+            res.sendStatus(500);
+            return;
+        });
+    });
+
     router.post('/', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
