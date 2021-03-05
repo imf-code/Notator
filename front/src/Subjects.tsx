@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ISubject } from './Interfaces';
-import NoteTable from './NoteTable';
+import MainView from './MainView';
 import Subject from './Subject';
 
 /**
@@ -30,7 +30,7 @@ export default function Subjects() {
 
     function addSubject(name: string) {
         if (!name) return;
-        
+
         axios.post('/api/subject', {
             subject: name
         }).then(resp => {
@@ -134,7 +134,7 @@ export default function Subjects() {
                 <input type='submit' value='Add' />
             </form>
             {subjectElements}
-            {currentSubject && <NoteTable subId={currentSubject.id} />}
+            {currentSubject && <MainView subId={currentSubject.id} />}
         </div>
     );
 }

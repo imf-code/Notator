@@ -63,34 +63,7 @@ export default (): Router => {
         });
     });
 
-    router.delete('/', (req: Request, res) => {
-        if (!req.id) {
-            res.sendStatus(500);
-            return;
-        }
-        if (!req.body.noteId) {
-            res.status(400).send('No note ID provided.');
-            return;
-        }
-
-        const userId = req.id;
-        const noteId = Number(req.body.noteId);
-
-        (async () => {
-            const result = await db.delNote(userId, noteId);
-
-            result.affected ?
-                res.status(200).send({ id: noteId }) :
-                res.status(400).send('No such note.');
-
-        })().catch(err => {
-            console.log(err);
-            res.sendStatus(500);
-            return;
-        });
-    });
-
-    router.patch('/', (req: Request, res) => {
+    router.patch('/:noteId', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
             return;
@@ -99,14 +72,10 @@ export default (): Router => {
             res.status(400).send('No new note provided.');
             return;
         }
-        if (!req.body.noteId) {
-            res.status(400).send('No note ID provided.');
-            return;
-        }
 
         const userId = req.id;
         const newNote = String(req.body.note);
-        const noteId = Number(req.body.noteId);
+        const noteId = Number(req.params.noteId);
 
         (async () => {
             const update = await db.updateNote(userId, noteId, newNote);
@@ -145,6 +114,33 @@ export default (): Router => {
 
 
             update && update.affected ?
+                res.status(200).send({ id: noteId }) :
+                res.status(400).send('No such note.');
+
+        })().catch(err => {
+            console.log(err);
+            res.sendStatus(500);
+            return;
+        });
+    });
+
+    router.delete('/', (req: Request, res) => {
+        if (!req.id) {
+            res.sendStatus(500);
+            return;
+        }
+        if (!req.body.noteId) {
+            res.status(400).send('No note ID provided.');
+            return;
+        }
+
+        const userId = req.id;
+        const noteId = Number(req.body.noteId);
+
+        (async () => {
+            const result = await db.delNote(userId, noteId);
+
+            result.affected ?
                 res.status(200).send({ id: noteId }) :
                 res.status(400).send('No such note.');
 

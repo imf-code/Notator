@@ -18,7 +18,7 @@ export interface ITopic {
     /** Name of the Topic */
     name: string,
     /** Array of notes under the topic */
-    notes?: INote[]
+    notes: INote[]
 }
 
 export interface INote {

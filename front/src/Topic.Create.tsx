@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 
-interface INewTopicProps {
+interface ICreateTopicProps {
     /** Function that handles the creation of new topic
      * @param name Name of the new topic
      */
@@ -8,7 +8,7 @@ interface INewTopicProps {
 }
 
 /** Component that includes the form for creating a new topic */
-export default function NewTopic(props: INewTopicProps) {
+export default function CreateTopic(props: ICreateTopicProps) {
     const [newTopic, setNewTopic] = useState<string>('');
 
     const submitRef = useRef<HTMLInputElement>(null);
@@ -18,7 +18,7 @@ export default function NewTopic(props: INewTopicProps) {
 
         if (submitRef.current) submitRef.current.disabled = true;
 
-        props.addTopic(name);
+        await props.addTopic(name);
 
         if (submitRef.current) submitRef.current.disabled = false;
     }
@@ -30,7 +30,7 @@ export default function NewTopic(props: INewTopicProps) {
         }}>
             <input
                 type='text'
-                placeholder='Create new topic...'
+                placeholder='Create a new topic...'
                 value={newTopic}
                 onChange={(event) => setNewTopic(event.target.value)}
             />
