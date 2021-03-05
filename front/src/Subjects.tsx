@@ -29,6 +29,8 @@ export default function Subjects() {
     );
 
     function addSubject(name: string) {
+        if (!name) return;
+        
         axios.post('/api/subject', {
             subject: name
         }).then(resp => {
@@ -65,6 +67,9 @@ export default function Subjects() {
                 });
 
                 setLocalSubjects(newLocalSubjects);
+            }
+            else {
+                throw new Error(String(resp.data));
             }
         }).catch(err => {
             console.log(err);

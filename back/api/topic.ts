@@ -62,7 +62,7 @@ export default (): Router => {
         });
     });
 
-    router.patch('/', (req: Request, res) => {
+    router.patch('/:topicId', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
             return;
@@ -71,14 +71,10 @@ export default (): Router => {
             res.status(400).send('No name provided.');
             return;
         }
-        if (!req.body.topicId) {
-            res.status(400).send('No topic ID provided.');
-            return;
-        }
 
         const userId = req.id;
+        const topicId = Number(req.params.topicId);
         const newName = String(req.body.name);
-        const topicId = Number(req.body.topicId);
 
         (async () => {
             const update = await db.renameTopic(userId, topicId, newName);
@@ -94,18 +90,14 @@ export default (): Router => {
         });
     });
 
-    router.delete('/', (req: Request, res) => {
+    router.delete('/:topicId', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
             return;
         }
-        if (!req.body.topicId) {
-            res.status(400).send('No topic ID provided.');
-            return;
-        }
 
         const userId = req.id;
-        const topicId = Number(req.body.topicId);
+        const topicId = Number(req.params.topicId);
 
         (async () => {
             const result = await db.delTopic(userId, topicId);

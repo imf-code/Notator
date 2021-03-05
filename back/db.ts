@@ -206,21 +206,21 @@ export default class Database {
 
     /**
      * **DEPRECATED**
-     * Find all topics belonging to an user under given subject.
+     * Find a topic and associated notes by ID.
      * @param userId User ID
      * @param subId Subject ID
      */
-    public async findTopics(userId: string, subId: number) {
+    public async findTopic(userId: string, topicId: number) {
 
         return await getConnection()
-            .getRepository(Subject)
+            .getRepository(Topic)
             .findOne({
                 where: {
                     client: userId,
-                    id: subId
+                    id: topicId
                 },
                 relations: [
-                    'topics'
+                    'notes'
                 ]
             });
     }
