@@ -55,6 +55,8 @@ export default function MainView(props: ITopicsProps) {
             return null;
         });
 
+        if (newId === null) return;
+
         if (!topicsAndNotes) {
             alert('Something went wrong. Please try refreshing the page.');
             return;
@@ -100,7 +102,8 @@ export default function MainView(props: ITopicsProps) {
 
         const updatedTopic = await apiResponse;
 
-        if (updatedTopic === topicId) {
+        if (updatedTopic === null) return;
+        else if (updatedTopic === topicId) {
             setTopicsAndNotes(newTopics);
         }
         else alert('Something went wrong. Please try refreshing the page.');
@@ -134,7 +137,8 @@ export default function MainView(props: ITopicsProps) {
 
         const deletedTopic = await apiResponse
 
-        if (deletedTopic === topicId) {
+        if (deletedTopic === null) return;
+        else if (deletedTopic === topicId) {
             setTopicsAndNotes(newTopics);
         }
         else alert('Something went wrong. Please try refreshing the page.');
@@ -222,10 +226,84 @@ export default function MainView(props: ITopicsProps) {
 
         const updatedNote = await apiResponse;
 
-        if (updatedNote === noteId) {
+        if (updatedNote === null) return;
+        else if (updatedNote === noteId) {
             setTopicsAndNotes(newTopics);
         }
         else alert('Something went wrong. Please try refreshing the page.');
+    },
+        [topicsAndNotes]
+    );
+
+    /**
+     * **WIP**
+     * Move a note to another topic
+     * @param topicId ID of the topic to be move the note to.
+     * @param noteID ID of the note to be moved.
+     */
+    // eslint-disable-next-line
+    const moveNote = useCallback(async (topicId: number, noteId: number) => {
+        const apiResponse = axios.patch(`/api/note/move/`, {
+            topicId: topicId,
+            noteId: noteId
+        }).then(resp => {
+            if (resp.status === 200) return resp.data.id as number;
+            else throw new Error();
+        }).catch(err => {
+            console.log(err);
+            if (err.response && err.response.status === 400) alert(err.response.data);
+            else alert('Something went wrong while editing the note. Please try again later.');
+            return null;
+        });
+
+        let newTopics: ITopic[];
+
+        try {
+            if (!topicsAndNotes) throw new Error();
+
+            let oldTopic = topicsAndNotes.find(topic => {
+                return topic.notes.find(note => {
+                    return note.id === noteId;
+                });
+            });
+            let newTopic = topicsAndNotes.find(topic => {
+                return topic.id === topicId;
+            })
+
+            const filteredNotes = oldTopic?.notes.filter(note => {
+                return note.id !== noteId;
+            });
+            const movingNote = oldTopic?.notes.find(note => {
+                return note.id === noteId;
+            });
+
+            if (!oldTopic || !newTopic || !filteredNotes || !movingNote) throw new Error();
+            const oldTopicId = oldTopic.id;
+
+            oldTopic.notes = [...filteredNotes];
+            newTopic.notes = [...newTopic.notes, movingNote];
+
+            newTopics = topicsAndNotes.map(topic => {
+                if (topic.id === oldTopicId) return oldTopic as ITopic;
+                else if (topic.id === topicId) return newTopic as ITopic;
+                else return topic;
+            });
+        }
+        catch (err) {
+            alert('Something went wrong. Please try refreshing the page.');
+            return;
+        }
+
+        const movedNote = await apiResponse;
+
+        if (movedNote === null) return;
+        else if (movedNote === noteId) {
+            setTopicsAndNotes(newTopics);
+        }
+        else {
+            alert('Something went wrong. Please try refreshing the page.');
+            return;
+        }
     },
         [topicsAndNotes]
     );
@@ -263,7 +341,8 @@ export default function MainView(props: ITopicsProps) {
 
         const deletedNote = await apiResponse;
 
-        if (deletedNote === noteId) {
+        if (deletedNote === null) return;
+        else if (deletedNote === noteId) {
             setTopicsAndNotes(newTopics);
         }
         else alert('Something went wrong. Please try refreshing the page.');
