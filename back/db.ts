@@ -311,7 +311,7 @@ export default class Database {
      * @param topicId Topic ID
      * @param note Note text
      */
-    public async createNote(userId: string, subId: number, topicId: number, note: string) {
+    public async createNote(userId: string, topicId: number, note: string) {
 
         return await getConnection()
             .createQueryBuilder()
@@ -319,7 +319,6 @@ export default class Database {
             .into(Note)
             .values([{
                 client: userId,
-                subject: subId,
                 topic: topicId,
                 text: note
             }])

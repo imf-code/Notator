@@ -22,9 +22,4 @@ export class Subject {
     })
     topics!: Topic[];
 
-    @OneToMany(() => Note, note => note.subject, {
-        cascade: ['remove']
-    })
-    notes!: Note[];
-
 }

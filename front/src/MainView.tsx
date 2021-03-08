@@ -178,7 +178,6 @@ export default function MainView(props: ITopicsProps) {
         }
 
         const newId = await axios.post('/api/note', {
-            subId: props.subId,
             topicId: topicId,
             note: text
         }).then(resp => {
@@ -205,7 +204,7 @@ export default function MainView(props: ITopicsProps) {
         }
         else return;
     },
-        [localNotes, props.subId]
+        [localNotes]
     );
 
     /**
@@ -214,7 +213,7 @@ export default function MainView(props: ITopicsProps) {
      * @param noteId ID of the note to be modified
      * @param text New text for the note
      */
-    const editNote = useCallback(async (topicId: number, noteId: number, text: string) => {
+    const editNote = useCallback(async (noteId: number, text: string) => {
         if (!localNotes) {
             alert('Something went wrong. Please try refreshing the page.');
             return;
@@ -232,12 +231,15 @@ export default function MainView(props: ITopicsProps) {
             return null;
         });
 
-        const newNote: INoteWithTopic = {
-            id: noteId,
-            text: text,
-            topicId: topicId
-        }
         const newNotes = new Map(localNotes);
+        const oldNote = newNotes.get(noteId);
+
+        if (!oldNote) {
+            alert('Something went wrong. Please try refreshing the page.');
+            return;
+        }
+
+        const newNote = {...oldNote, text: text} as INoteWithTopic;
         newNotes.set(noteId, newNote);
 
         const updatedNote = await apiResponse;
@@ -307,7 +309,7 @@ export default function MainView(props: ITopicsProps) {
      * @param topicId ID of the parent topic
      * @param noteId ID of the note to be deleted
      */
-    const deleteNote = useCallback(async (topicId: number, noteId: number) => {
+    const deleteNote = useCallback(async (noteId: number) => {
         if (!localNotes) {
             alert('Something went wrong. Please try refreshing the page.');
             return;
@@ -388,7 +390,6 @@ export default function MainView(props: ITopicsProps) {
 
     return (
         <div>
-            {undefined}
             <CreateTopic addTopic={addTopic} />
             {topicAndNoteArray}
         </div>

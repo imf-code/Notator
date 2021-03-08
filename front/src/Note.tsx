@@ -2,21 +2,19 @@ import { useRef, useState } from 'react';
 import { INote } from './Interfaces';
 
 interface INoteProps extends INote {
-    /** ID of the parent topic */
-    topicId: number;
     /**
      * Function for handling editing of a note
      * @param topicId ID of the parent topic
      * @param noteId ID of the note to be modified
      * @param name New text for the note
      */
-    onEdit: (topicId: number, noteId: number, name: string) => Promise<void>;
+    onEdit: (noteId: number, name: string) => Promise<void>;
     /**
      * Function for deleting the note
      * @param topicId ID of the parent topic
      * @param noteId ID of the note to be deleted
      */
-    onDelete: (topicId: number, noteId: number) => Promise<void>
+    onDelete: (noteId: number) => Promise<void>
 }
 
 /** Component for displaying and manipulating a single note. TODO: ADD, EDIT, MOVE, DELETE */
@@ -44,7 +42,7 @@ export default function Note(props: INoteProps) {
             (async () => {
                 if (editRef.current) editRef.current.disabled = true;
 
-                await props.onEdit(props.topicId, props.id, editedText);
+                await props.onEdit(props.id, editedText);
 
                 if (editRef.current) editRef.current.disabled = false;
                 setEdit(false);
@@ -67,7 +65,7 @@ export default function Note(props: INoteProps) {
                     </button>
                 </span>}
 
-            <button onClick={() => props.onDelete(props.topicId, props.id)}>
+            <button onClick={() => props.onDelete(props.id)}>
                 Delete
             </button>
         </div >

@@ -41,18 +41,13 @@ export default (): Router => {
             res.status(400).send('No topic ID provided.');
             return;
         }
-        if (!req.body.subId) {
-            res.status(400).send('No subject ID provided.');
-            return;
-        }
 
         const userId = req.id;
-        const subId = Number(req.body.subId);
         const topicId = Number(req.body.topicId);
         const note = String(req.body.note);
 
         (async () => {
-            const insert = await db.createNote(userId, subId, topicId, note);
+            const insert = await db.createNote(userId, topicId, note);
 
             res.status(201).send(insert.identifiers);
 

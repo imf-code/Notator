@@ -17,11 +17,6 @@ export class Note {
     })
     client!: string;
 
-    @ManyToOne(() => Subject, subject => subject.notes, {
-        onDelete: 'CASCADE'
-    })
-    subject!: number;
-
     @ManyToOne(() => Topic, topic => topic.notes, {
         onDelete: 'CASCADE'
     })
