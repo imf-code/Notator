@@ -1,11 +1,12 @@
 import { useRef, useState } from "react";
-import { ITopic } from "./Interfaces";
 
 interface ITopicProps {
     /** Child components if any. Note components expected */
     children?: JSX.Element | JSX.Element[];
-    /** Topic object including name and ID */
-    topic: ITopic;
+    /** Topic ID */
+    id: number;
+    /** Topic name */
+    name: string;
     /**
      * Function for handling renaming of topic
      * @param topicId ID of the topic to be modified
@@ -26,7 +27,7 @@ interface ITopicProps {
 export default function Topic(props: ITopicProps) {
 
     const [edit, setEdit] = useState<boolean>(false);
-    const [editedName, setEditedName] = useState<string>(props.topic.name);
+    const [editedName, setEditedName] = useState<string>(props.name);
 
     const editRef = useRef<HTMLButtonElement>(null);
 
@@ -35,11 +36,11 @@ export default function Topic(props: ITopicProps) {
      */
     function onStopEdit() {
         if (!editedName) {
-            setEditedName(props.topic.name);
+            setEditedName(props.name);
             setEdit(false);
             return;
         }
-        else if (editedName === props.topic.name) {
+        else if (editedName === props.name) {
             setEdit(false);
             return;
         }
@@ -47,7 +48,7 @@ export default function Topic(props: ITopicProps) {
             (async () => {
                 if (editRef.current) editRef.current.disabled = true;
 
-                await props.onEdit(props.topic.id, editedName);
+                await props.onEdit(props.id, editedName);
 
                 if (editRef.current) editRef.current.disabled = false;
                 setEdit(false);
@@ -60,17 +61,17 @@ export default function Topic(props: ITopicProps) {
                 <span>
                     <input type='text' value={editedName} onChange={event => setEditedName(event.target.value)} />
                     <button onClick={onStopEdit} ref={editRef}>
-                        {editedName === props.topic.name || !editedName ? 'Cancel' : 'Save'}
+                        {editedName === props.name || !editedName ? 'Cancel' : 'Save'}
                     </button>
                 </span> :
                 <span>
-                    {props.topic.name}
+                    {props.name}
                     <button onClick={() => setEdit(true)}>
                         Edit
                     </button>
                 </span>}
 
-            <button onClick={() => props.onDelete(props.topic.id)}>
+            <button onClick={() => props.onDelete(props.id)}>
                 Delete
             </button>
 
