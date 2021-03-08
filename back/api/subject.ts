@@ -56,6 +56,34 @@ export default (): Router => {
         });
     });
 
+    router.patch('/order/:subId', (req:Request, res) => {
+        if (!req.id) {
+            res.sendStatus(500);
+            return;
+        }
+        if (!req.body.order) {
+            res.status(400).send('New order required.');
+            return;
+        }
+
+        const userId = req.id;
+        const subId = Number(req.params.subId);
+        const order = String(req.body.order);
+
+        (async () => {
+            const update = await db.reOrderTopics(userId, subId, order);
+
+            update.affected ?
+                res.status(200).send({ id: subId }) :
+                res.status(400).send('No such subject.');
+
+        })().catch(err => {
+            console.log(err);
+            res.sendStatus(500);
+            return;
+        });
+    });
+
     router.patch('/:subId', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);

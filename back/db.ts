@@ -19,6 +19,7 @@ export default class Database {
      * @param ssl Object including necessary SSL certificates
      */
     public async connect(ssl: SSL): Promise<Connection | null> {
+
         return await createConnection({
             type: 'postgres',
             host: process.env.PGHOST,
@@ -50,6 +51,7 @@ export default class Database {
      * @param userId User ID
      */
     public async findUserById(userId: string): Promise<Client | undefined> {
+
         if (!userId) return undefined;
 
         return await getConnection()
@@ -65,6 +67,7 @@ export default class Database {
      * @param userName Username, will be converted to lowercase for comparisons
      */
     public async findUserByName(userName: string): Promise<Client | undefined> {
+
         if (!userName) return undefined;
 
         return await getConnection()
@@ -82,6 +85,7 @@ export default class Database {
      * @param userId User ID
      */
     public async findDataById(userId: string): Promise<Client | undefined> {
+
         if (!userId) return undefined;
 
         return await getConnection()
@@ -105,6 +109,7 @@ export default class Database {
      * @param pwd Password
      */
     public async createUser(username: string, pwd: string): Promise<boolean> {
+
         if (await this.findUserByName(username)) {
             return false;
         };
@@ -174,6 +179,7 @@ export default class Database {
      * @param subName New name for the subject
      */
     public async renameSubject(userId: string, subId: number, subName: string) {
+
         return await getConnection()
             .createQueryBuilder()
             .update(Subject)
@@ -269,12 +275,34 @@ export default class Database {
     }
 
     /**
+     * Update topic order string.
+     * @param userId User ID
+     * @param subId Subject ID
+     * @param newOrder String representing order of topics under given subject.
+     */
+    public async reOrderTopics(userId: string, subId: number, newOrder: string) {
+
+        return await getConnection()
+            .createQueryBuilder()
+            .update(Subject)
+            .set({
+                topicOrder: newOrder
+            })
+            .where({
+                client: userId,
+                id: subId
+            })
+            .execute();
+    }
+
+    /**
      * Rename a topic
      * @param userId User ID
      * @param topicId Topic ID
      * @param topicName New name for the topic
      */
     public async renameTopic(userId: string, topicId: number, topicName: string) {
+
         return await getConnection()
             .createQueryBuilder()
             .update(Topic)
@@ -328,6 +356,27 @@ export default class Database {
     }
 
     /**
+     * Update note order string
+     * @param userId User ID
+     * @param topicId Topic ID
+     * @param newOrder String representing the order of notes under given topic.
+     */
+    public async reOrderNotes(userId: string, topicId: number, newOrder: string) {
+
+        return await getConnection()
+            .createQueryBuilder()
+            .update(Topic)
+            .set({
+                noteOrder: newOrder
+            })
+            .where({
+                client: userId,
+                topic: topicId
+            })
+            .execute();
+    }
+
+    /**
      * Update the note text.
      * @param userId User ID
      * @param noteId Note ID
@@ -355,6 +404,7 @@ export default class Database {
      * @param noteId Note ID
      */
     public async moveNote(userId: string, topicId: number, noteId: number) {
+
         const ownsTargetTopic = await getConnection()
             .getRepository(Topic)
             .findOne({
