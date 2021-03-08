@@ -1,5 +1,4 @@
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { Note } from './Note';
 import { Client } from './Client';
 import { Topic } from './Topic';
 

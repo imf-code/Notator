@@ -1,7 +1,6 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Topic } from './Topic';
 import { Client } from './Client';
-import { Subject } from './Subject';
 
 @Entity()
 export class Note {
