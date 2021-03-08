@@ -161,7 +161,8 @@ export default class Database {
             .into(Subject)
             .values([{
                 client: userId,
-                name: subj
+                name: subj,
+                topicOrder: ''
             }])
             .execute();
     }
@@ -261,7 +262,8 @@ export default class Database {
             .values([{
                 client: userId,
                 subject: subId,
-                name: topic
+                name: topic,
+                noteOrder: ''
             }])
             .execute();
     }

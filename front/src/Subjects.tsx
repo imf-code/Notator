@@ -40,7 +40,8 @@ export default function Subjects() {
             const createdSubject: ISubject = {
                 id: newId,
                 name: name,
-                topics: []
+                topics: [],
+                topicOrder: ''
             }
 
             setLocalSubjects([...localSubjects, createdSubject]);

@@ -11,6 +11,9 @@ export class Subject {
     @Column('varchar')
     name!: string;
 
+    @Column('text')
+    topicOrder!: string;
+
     @ManyToOne(() => Client, user => user.subjects, {
         onDelete: 'CASCADE'
     })

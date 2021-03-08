@@ -10,6 +10,8 @@ export interface ISubject {
     name: string,
     /** Array of topics under the subject */
     topics?: ITopic[]
+    /** Order of topics as stringified JSON */
+    topicOrder: string;
 }
 
 export interface ITopic {
@@ -19,6 +21,8 @@ export interface ITopic {
     name: string,
     /** Array of notes under the topic */
     notes: INote[]
+    /** Order of notes as stringified JSON */
+    noteOrder: string;
 }
 
 export interface INote {
