@@ -14,6 +14,11 @@ export default (): Router => {
         const userId = req.id;
         const subId = Number(req.params.subId);
 
+        if (Number.isNaN(subId)) {
+            res.status(400).send('Invalid ID.');
+            return;
+        }
+
         (async () => {
             const subData = await db.findTopicsAndNotes(userId, subId);
 
@@ -50,6 +55,11 @@ export default (): Router => {
         const subId = Number(req.body.subId);
         const topic = String(req.body.topic);
 
+        if (Number.isNaN(subId)) {
+            res.status(400).send('Invalid ID.');
+            return;
+        }
+
         (async () => {
             const insert = await db.createTopic(userId, subId, topic);
 
@@ -75,6 +85,11 @@ export default (): Router => {
         const userId = req.id;
         const topicId = Number(req.params.topicId);
         const newOrder = String(req.body.order);
+
+        if (Number.isNaN(topicId)) {
+            res.status(400).send('Invalid ID.');
+            return;
+        }
 
         (async () => {
             const update = await db.reOrderNotes(userId, topicId, newOrder);
@@ -104,6 +119,11 @@ export default (): Router => {
         const topicId = Number(req.params.topicId);
         const newName = String(req.body.name);
 
+        if (Number.isNaN(topicId)) {
+            res.status(400).send('Invalid ID.');
+            return;
+        }
+
         (async () => {
             const update = await db.renameTopic(userId, topicId, newName);
 
@@ -126,6 +146,11 @@ export default (): Router => {
 
         const userId = req.id;
         const topicId = Number(req.params.topicId);
+
+        if (Number.isNaN(topicId)) {
+            res.status(400).send('Invalid ID.');
+            return;
+        }
 
         (async () => {
             const result = await db.delTopic(userId, topicId);

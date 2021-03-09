@@ -46,6 +46,11 @@ export default (): Router => {
         const topicId = Number(req.body.topicId);
         const note = String(req.body.note);
 
+        if (Number.isNaN(topicId)) {
+            res.status(400).send('Invalid ID.');
+            return;
+        }
+
         (async () => {
             const insert = await db.createNote(userId, topicId, note);
 
@@ -71,6 +76,11 @@ export default (): Router => {
         const userId = req.id;
         const newNote = String(req.body.note);
         const noteId = Number(req.params.noteId);
+
+        if (Number.isNaN(noteId)) {
+            res.status(400).send('Invalid ID.');
+            return;
+        }
 
         (async () => {
             const update = await db.updateNote(userId, noteId, newNote);
@@ -104,6 +114,11 @@ export default (): Router => {
         const topicId = Number(req.body.topicId);
         const noteId = Number(req.body.noteId);
 
+        if (Number.isNaN(topicId) || Number.isNaN(noteId)) {
+            res.status(400).send('Invalid ID.');
+            return;
+        }
+
         (async () => {
             const update = await db.moveNote(userId, topicId, noteId);
 
@@ -127,6 +142,11 @@ export default (): Router => {
 
         const userId = req.id;
         const noteId = Number(req.params.noteId);
+
+        if (Number.isNaN(noteId)) {
+            res.status(400).send('Invalid ID.');
+            return;
+        }
 
         (async () => {
             const result = await db.delNote(userId, noteId);

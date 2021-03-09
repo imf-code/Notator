@@ -56,7 +56,7 @@ export default (): Router => {
         });
     });
 
-    router.patch('/order/:subId', (req:Request, res) => {
+    router.patch('/order/:subId', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
             return;
@@ -69,6 +69,11 @@ export default (): Router => {
         const userId = req.id;
         const subId = Number(req.params.subId);
         const order = String(req.body.order);
+
+        if (Number.isNaN(subId)) {
+            res.status(400).send('Invalid ID.');
+            return;
+        }
 
         (async () => {
             const update = await db.reOrderTopics(userId, subId, order);
@@ -98,6 +103,11 @@ export default (): Router => {
         const newName = String(req.body.name);
         const subId = Number(req.params.subId);
 
+        if (Number.isNaN(subId)) {
+            res.status(400).send('Invalid ID.');
+            return;
+        }
+
         (async () => {
             const update = await db.renameSubject(userId, subId, newName);
 
@@ -120,6 +130,11 @@ export default (): Router => {
 
         const userId = req.id;
         const subId = Number(req.params.subId);
+
+        if (Number.isNaN(subId)) {
+            res.status(400).send('Invalid ID.');
+            return;
+        }
 
         (async () => {
             const result = await db.delSubject(userId, subId);
