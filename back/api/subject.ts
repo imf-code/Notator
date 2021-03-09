@@ -5,6 +5,7 @@ export default (): Router => {
     const router = Router();
     const db = new Database;
 
+    // Get a list of all subjects for a user
     router.get('/all', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
@@ -31,6 +32,7 @@ export default (): Router => {
         });
     });
 
+    // Create a new subject
     router.post('/', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
@@ -56,6 +58,7 @@ export default (): Router => {
         });
     });
 
+    // Reorder the topics under given subject
     router.patch('/order/:subId', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
@@ -89,6 +92,7 @@ export default (): Router => {
         });
     });
 
+    // Rename a subject
     router.patch('/:subId', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
@@ -122,6 +126,7 @@ export default (): Router => {
         });
     });
 
+    // Delete a subject
     router.delete('/:subId', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
