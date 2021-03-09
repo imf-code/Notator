@@ -1,14 +1,16 @@
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import LoginForm from './LoginForm';
 import Logout from './Logout';
 import Subjects from './Subjects';
 import { IUser } from './Interfaces';
+import MainView from './MainView';
 
 function App() {
 
   const [userData, setUserData] = useState<IUser | undefined>(undefined);
   const [loginStatus, setLoginStatus] = useState<boolean>(false);
+  const [currentSubject, setCurrentSubject] = useState<number | undefined>(undefined);
 
   // Check if user is currently logged in on server using session cookie.
   useEffect(() => {
@@ -28,7 +30,7 @@ function App() {
       })
   }, []);
 
-  // GET notes when user logs in and clear notes from local memory on logout.
+  // GET user data on login and clear memory on logout.
   useEffect(() => {
     if (loginStatus && !userData) {
       axios.get('/api/user')
@@ -48,6 +50,7 @@ function App() {
     }
     else if (!loginStatus && userData) {
       setUserData(undefined);
+      setCurrentSubject(undefined);
       return;
     }
     else return;
@@ -58,11 +61,13 @@ function App() {
 
   return (
     <div>
-      {userData && `Hello, user ${userData.name}`}
-      <LoginForm setLoginStatus={setLoginStatus} />
-      <Logout setLoginStatus={setLoginStatus} />
+      {userData && `Welcome, ${userData.name}!`}
+      {!loginStatus ? <LoginForm {...{ setLoginStatus }} /> :
+        <Logout {...{ setLoginStatus }} />}
       <br />
-      {loginStatus && <Subjects />}
+      {loginStatus && <span>Select a Subject: <Subjects {...{ setCurrentSubject }} /></span>}
+      <br />
+      {currentSubject && <MainView subId={currentSubject} />}
     </div>
   );
 }

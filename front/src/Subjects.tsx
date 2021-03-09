@@ -1,18 +1,26 @@
 import axios from 'axios';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ISubject } from './Interfaces';
-import MainView from './MainView';
-import Subject from './Subject';
+import CreatedSubject from './Subject.Create';
+import EditSubject from './Subject.Edit';
+
+interface ISubjectsProps {
+    /** Set currently selected subject. */
+    setCurrentSubject: React.Dispatch<React.SetStateAction<number | undefined>>
+}
 
 /**
- * Component for displaying, selecting and manipulating subjects and the topics/notes under selected subject.
+ * Component for displaying, selecting and manipulating subjects.
  */
-export default function Subjects() {
+export default function Subjects(props: ISubjectsProps) {
 
-    const [currentSubject, setCurrentSubject] = useState<ISubject | undefined>(undefined);
     const [localSubjects, setLocalSubjects] = useState<ISubject[] | undefined>(undefined);
-    const [newSubject, setNewSubject] = useState<string>('');
+    const [subjectId, setSubjectId] = useState<number | undefined>(undefined);
+    const [subject, setSubject] = useState<ISubject | undefined>(undefined);
+    const [edit, setEdit] = useState<boolean>(false);
+    const [create, setCreate] = useState<boolean>(false);
 
+    // Get list of subjects from API
     useEffect(() => {
         axios.get('/api/subject/all')
             .then(resp => {
@@ -28,115 +36,196 @@ export default function Subjects() {
         []
     );
 
-    function addSubject(name: string) {
-        if (!name) return;
+    // Select a subject when list of subjects changes
+    useEffect(() => {
+        if (!localSubjects || !localSubjects.length) {
+            setSubjectId(undefined);
+            return;
+        }
+        else setSubjectId(localSubjects[0].id);
+    },
+        [localSubjects]
+    );
 
-        axios.post('/api/subject', {
+    // Send currently selected subject ID upstream
+    useEffect(() => {
+        if (!subjectId) props.setCurrentSubject(undefined);
+        else props.setCurrentSubject(subjectId);
+    },
+        [subjectId, props]
+    );
+
+    // Find currently selected subject for internal use
+    useEffect(() => {
+        if (!subjectId || !localSubjects || !localSubjects.length) return;
+
+        const currentSubject = localSubjects.find(subject => {
+            return subject.id === subjectId;
+        });
+
+        if (currentSubject) setSubject(currentSubject);
+        else setSubject(undefined);
+    },
+        [subjectId, localSubjects]
+    );
+
+    /**
+     * Create a new Subject
+     * @param name Name of the new subject.
+     */
+    async function addSubject(name: string) {
+        if (!localSubjects) {
+            alert('Something went wrong. Please try refreshing the page.');
+            return;
+        }
+
+        const apiResponse = axios.post('/api/subject', {
             subject: name
         }).then(resp => {
-            if (!localSubjects) return;
+            if (resp.status === 201) return resp.data[0].id as number;
+            else throw new Error();
+        }).catch(err => {
+            console.log(err);
+            if (err.response.status === 400) alert(err.response.data);
+            else alert('There was an error while attempting to create a new subject. Please try again later.');
+            return null;
+        });
 
-            const newId = Number(resp.data[0].id);
-            const createdSubject: ISubject = {
+
+        const newId = await apiResponse;
+
+        if (newId === null) return;
+        else if (newId) {
+
+            const newSubject: ISubject = {
                 id: newId,
                 name: name,
                 topics: [],
                 topicOrder: ''
             }
 
-            setLocalSubjects([...localSubjects, createdSubject]);
-
-        }).catch(err => {
-            console.log(err);
-            if (err.response.status === 400) alert('A name for new subject is required.');
-            else alert('There was an error while attempting to create a new subject. Please try again later.');
-        });
+            setLocalSubjects([newSubject, ...localSubjects,]);
+            setCreate(false);
+        }
+        else alert('Something went wrong. Please try refreshing the page.');
     }
 
-    const renameSubject = useCallback(async (id: number, newName: string) => {
-        axios.patch(`/api/subject/${id}`, {
+    /**
+     * Rename a subject
+     * @param subId ID of subject to be renamed
+     * @param newName New name for the subject
+     */
+    const renameSubject = useCallback(async (subId: number, newName: string) => {
+        if (!localSubjects) {
+            alert('Something went wrong. Please try refreshing the page.');
+            return;
+        }
+
+        const apiResponse = axios.patch(`/api/subject/${subId}`, {
             name: newName
         }).then(resp => {
-            if (resp.status === 200) {
-                if (!localSubjects) {
-                    alert('There was an error while attempting to rename the subject. Please try refreshing the page.');
-                    return;
-                }
-
-                const newLocalSubjects = localSubjects.map(subject => {
-                    return subject.id === id ? { ...subject, name: newName } : subject;
-                });
-
-                setLocalSubjects(newLocalSubjects);
-            }
+            if (resp.status === 200) return resp.data.id as number;
             else {
-                throw new Error(String(resp.data));
+                throw new Error();
             }
         }).catch(err => {
             console.log(err);
-            if (err.response.status === 400) alert('Name for the subject is required.');
+            if (err.response.status === 400) alert(err.response.data);
             else alert('There was an error while attempting to rename the subject. Please try again later.');
+            return null;
         });
+
+        const newLocalSubjects = localSubjects.map(subject => {
+            return subject.id === subId ? { ...subject, name: newName } : subject;
+        });
+
+        const editedId = await apiResponse;
+
+        if (editedId === null) return;
+        else if (editedId === subId) {
+            setLocalSubjects(newLocalSubjects);
+            setEdit(false);
+        }
+        else alert('Something went wrong. Please try refreshing the page.');
     },
         [localSubjects]
     );
 
-    const deleteSubject = useCallback(async (id: number) => {
-        axios.delete(`/api/subject/${id}`)
+    /**
+     * Delete a subject
+     * @param subId ID of subject to be deleted
+     */
+    const deleteSubject = useCallback(async (subId: number | undefined) => {
+        if (!localSubjects) {
+            alert('Something went wrong. Please try refreshing the page.');
+            return;
+        }
+        if (!subId) return;
+
+        const apiResponse = axios.delete(`/api/subject/${subId}`)
             .then(resp => {
-                if (resp.status !== 200) {
-                    throw new Error();
-                }
-
-                if (!localSubjects) {
-                    alert('There was an error while attempting to delete the subject. Please try refreshing the page.');
-                    return;
-                }
-
-                const newLocalSubjects = localSubjects.filter(subject => {
-                    return subject.id !== id;
-                });
-
-                setLocalSubjects(newLocalSubjects);
-
+                if (resp.status === 200) return resp.data.id as number;
+                else throw new Error();
             }).catch(err => {
                 console.log(err);
-                alert('There was an error while attempting to delete the subject. Please try again later.');
+                if (err.response.status === 400) alert(err.response.data);
+                else alert('There was an error while attempting to delete the subject. Please try again later.');
+                return null;
             });
+
+        const newLocalSubjects = localSubjects.filter(subject => {
+            return subject.id !== subId;
+        });
+
+        const deletedId = await apiResponse;
+
+        if (deletedId === null) return;
+        else if (deletedId === subId) {
+            setLocalSubjects(newLocalSubjects);
+        }
+        else alert('Something went wrong. Please try refreshing the page.');
     },
         [localSubjects]
     );
 
-    const subjectElements = useMemo(() => {
+    /** Current subjects as an array of HTML option elements */
+    const optionArray = useMemo(() => {
         if (!localSubjects) return null;
 
         return localSubjects.map((subject) => {
             return (
-                <Subject key={subject.id}
-                    data={subject}
-                    onEdit={renameSubject}
-                    setCurrentSubject={setCurrentSubject}
-                    onDelete={deleteSubject} />
+                <option key={subject.id} value={subject.id}>{subject.name}</option>
             );
         })
-    }, [localSubjects, renameSubject, deleteSubject]);
+    },
+        [localSubjects]
+    );
 
 
     return (
-        <div>
-            <form onSubmit={event => {
-                event.preventDefault();
-                addSubject(newSubject);
-            }}>
-                <input type='text'
-                    value={newSubject}
-                    onChange={event => setNewSubject(event.target.value)}
-                    placeholder='Add new subject...' />
-                <input type='submit' value='Add' />
-            </form>
-            {subjectElements}
-            {currentSubject && <MainView subId={currentSubject.id} />}
-        </div>
+        <span>
+            {(!edit && !create) &&
+                <select value={subjectId} onChange={(event) => setSubjectId(Number(event.target.value))}>
+                    {optionArray}
+                </select>}
+            {create && <CreatedSubject {...{ addSubject }} />}
+            {(edit && subject) &&
+                <EditSubject
+                    onEdit={renameSubject}
+                    id={subject.id}
+                    name={subject.name}
+                />}
+            <button onClick={() => setCreate(!create)}>
+                {create ? 'Cancel' : 'Add'}
+            </button>
+            {(!create && !edit) &&
+                <button onClick={() => setEdit(true)}>
+                    Edit
+                </button>}
+            <button onClick={() => deleteSubject(subjectId)}>
+                Delete
+            </button>
+        </span >
     );
 }
 
