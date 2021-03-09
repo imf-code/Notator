@@ -5,7 +5,7 @@ interface ICreateNoteProps {
     topicId: number;
     /** Function that handles the creation of a new note
      * @param topicId ID of the parent topic
-     * @param name Text for the new note
+     * @param text Text for the new note
      */
     addNote: (topicId: number, text: string) => Promise<void>;
 }
