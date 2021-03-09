@@ -36,17 +36,6 @@ export default function Subjects(props: ISubjectsProps) {
         []
     );
 
-    // Select a subject when list of subjects changes
-    useEffect(() => {
-        if (!localSubjects || !localSubjects.length) {
-            setSubjectId(undefined);
-            return;
-        }
-        else setSubjectId(localSubjects[0].id);
-    },
-        [localSubjects]
-    );
-
     // Send currently selected subject ID upstream
     useEffect(() => {
         if (!subjectId) props.setCurrentSubject(undefined);
@@ -109,8 +98,9 @@ export default function Subjects(props: ISubjectsProps) {
                 topicOrder: ''
             }
 
-            setLocalSubjects([newSubject, ...localSubjects,]);
             setCreate(false);
+            setLocalSubjects([newSubject, ...localSubjects,]);
+            setSubjectId(newId);
         }
         else alert('Something went wrong. Please try refreshing the page.');
     }
@@ -185,6 +175,7 @@ export default function Subjects(props: ISubjectsProps) {
         if (deletedId === null) return;
         else if (deletedId === subId) {
             setLocalSubjects(newLocalSubjects);
+            setSubjectId(undefined);
         }
         else alert('Something went wrong. Please try refreshing the page.');
     }
@@ -206,7 +197,10 @@ export default function Subjects(props: ISubjectsProps) {
     return (
         <span>
             {(!edit && !create) &&
-                <select value={subjectId} onChange={(event) => setSubjectId(Number(event.target.value))}>
+                <select value={subjectId ?? 'default'} onChange={(event) => setSubjectId(Number(event.target.value))}>
+                    <option key={'default'} value='default' disabled>
+                        Select a subject...
+                    </option>
                     {optionArray}
                 </select>}
             {create && <CreatedSubject {...{ addSubject }} />}
