@@ -7,6 +7,8 @@ interface ISubjectProps {
     name: string;
     /** Handler for submitting edited name */
     onEdit: (id: number, name: string) => Promise<void>;
+    /** Function for canceling edit without modifications */
+    cancelEdit: () => void;
 }
 
 /**
@@ -19,10 +21,11 @@ export default function EditSubject(props: ISubjectProps) {
 
     function onStopEdit() {
         if (!editedName) {
-            setEditedName(props.name);
+            props.cancelEdit();
             return;
         }
         else if (editedName === props.name) {
+            props.cancelEdit();
             return;
         }
         else {
@@ -45,7 +48,8 @@ export default function EditSubject(props: ISubjectProps) {
                         onStopEdit();
                     }}>
                     <input type='text' value={editedName} onChange={event => setEditedName(event.target.value)} />
-                    <input type='submit' ref={editRef} value={!editedName ? 'Cancel' : 'Save'} />
+                    <input type='submit' ref={editRef} value='Save' />
+                    <input type='button' onClick={props.cancelEdit} value='Cancel' />
                 </form>
             </span>
         </span>

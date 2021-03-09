@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ISubject } from './Interfaces';
 import CreatedSubject from './Subject.Create';
 import EditSubject from './Subject.Edit';
@@ -69,6 +69,11 @@ export default function Subjects(props: ISubjectsProps) {
         [subjectId, localSubjects]
     );
 
+    function cancelEdit() {
+        setEdit(false);
+        return;
+    }
+
     /**
      * Create a new Subject
      * @param name Name of the new subject.
@@ -115,7 +120,7 @@ export default function Subjects(props: ISubjectsProps) {
      * @param subId ID of subject to be renamed
      * @param newName New name for the subject
      */
-    const renameSubject = useCallback(async (subId: number, newName: string) => {
+    async function renameSubject(subId: number, newName: string) {
         if (!localSubjects) {
             alert('Something went wrong. Please try refreshing the page.');
             return;
@@ -147,15 +152,13 @@ export default function Subjects(props: ISubjectsProps) {
             setEdit(false);
         }
         else alert('Something went wrong. Please try refreshing the page.');
-    },
-        [localSubjects]
-    );
+    }
 
     /**
      * Delete a subject
      * @param subId ID of subject to be deleted
      */
-    const deleteSubject = useCallback(async (subId: number | undefined) => {
+    async function deleteSubject(subId: number | undefined) {
         if (!localSubjects) {
             alert('Something went wrong. Please try refreshing the page.');
             return;
@@ -184,9 +187,7 @@ export default function Subjects(props: ISubjectsProps) {
             setLocalSubjects(newLocalSubjects);
         }
         else alert('Something went wrong. Please try refreshing the page.');
-    },
-        [localSubjects]
-    );
+    }
 
     /** Current subjects as an array of HTML option elements */
     const optionArray = useMemo(() => {
@@ -212,6 +213,7 @@ export default function Subjects(props: ISubjectsProps) {
             {(edit && subject) &&
                 <EditSubject
                     onEdit={renameSubject}
+                    cancelEdit={cancelEdit}
                     id={subject.id}
                     name={subject.name}
                 />}
