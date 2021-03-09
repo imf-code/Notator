@@ -119,18 +119,14 @@ export default (): Router => {
         });
     });
 
-    router.delete('/', (req: Request, res) => {
+    router.delete('/:noteId', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
             return;
         }
-        if (!req.body.noteId) {
-            res.status(400).send('No note ID provided.');
-            return;
-        }
 
         const userId = req.id;
-        const noteId = Number(req.body.noteId);
+        const noteId = Number(req.params.noteId);
 
         (async () => {
             const result = await db.delNote(userId, noteId);
