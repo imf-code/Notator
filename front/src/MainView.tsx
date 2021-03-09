@@ -155,7 +155,7 @@ export default function MainView(props: ITopicsProps) {
         const newTopics = new Map(localTopics);
         newTopics.delete(topicId);
 
-        const deletedTopic = await apiResponse
+        const deletedTopic = await apiResponse;
 
         if (deletedTopic === null) return;
         else if (deletedTopic === topicId) {
