@@ -215,9 +215,10 @@ export default function Subjects(props: ISubjectsProps) {
                     id={subject.id}
                     name={subject.name}
                 />}
-            <button onClick={() => setCreate(!create)}>
-                {create ? 'Cancel' : 'Add'}
-            </button>
+            {!edit &&
+                <button onClick={() => setCreate(!create)}>
+                    {create ? 'Cancel' : 'Add'}
+                </button>}
             {(!create && !edit) &&
                 <button onClick={() => setEdit(true)}>
                     Edit
