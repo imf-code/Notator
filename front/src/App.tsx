@@ -60,7 +60,7 @@ function App() {
   );
 
   return (
-    <div>
+    <div className='h-screen bg-yellow-50'>
       {userData && `Welcome, ${userData.name}!`}
       {!loginStatus ? <LoginForm {...{ setLoginStatus }} /> :
         <Logout {...{ setLoginStatus }} />}

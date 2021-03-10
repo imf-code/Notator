@@ -101,33 +101,45 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
     }
 
     return (
-        <div>
-            <form onSubmit={event => {
-                event.preventDefault();
-                onLogin(username, password);
-            }}>
-                <div>
-                    <input type='text' id='username_input'
-                        value={username}
-                        onChange={(event) => setUsername(event.target.value)} />
-                </div>
+        <div className='flex flex-wrap h-96 w-screen justify-center'>
+            <div className='self-center w-60 font-sans px-9 pt-9 pb-16 bg-green-300 rounded-3xl shadow-lg'>
+                <p className='text-center text-lg'>
+                    Welcome to Notator!
+                </p>
+                <p className='float-right text-gray-600 text-sm'>
+                    ver. 0.6
+                </p>
+                <form onSubmit={event => {
+                    event.preventDefault();
+                    onLogin(username, password);
+                }}>
+                    <div>
+                        <input type='text'
+                            className='w-full'
+                            placeholder='Username'
+                            value={username}
+                            onChange={(event) => setUsername(event.target.value)} />
+                    </div>
+
+                    <div>
+                        <input type='password'
+                            className='w-full'
+                            placeholder='Password'
+                            value={password}
+                            onChange={(event) => setPassword(event.target.value)} />
+                    </div>
+
+                    <div>
+                        <input type='submit' value='Login' ref={loginRef} />
+                        <button onClick={() => onSignup(username, password)} ref={signupRef}>
+                            Signup
+                        </button>
+                    </div>
+                </form>
 
                 <div>
-                    <input type='password' id='password_input'
-                        value={password}
-                        onChange={(event) => setPassword(event.target.value)} />
+                    {message}
                 </div>
-
-                <div>
-                    <input type='submit' value='Login' ref={loginRef} />
-                    <button onClick={() => onSignup(username, password)} ref={signupRef}>
-                        Signup
-                    </button>
-                </div>
-            </form>
-
-            <div>
-                {message}
             </div>
         </div>
     );
