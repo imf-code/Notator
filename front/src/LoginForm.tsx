@@ -102,9 +102,9 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
 
     return (
         <div className='flex flex-wrap h-96 w-screen justify-center'>
-            <div className='self-center w-60 font-sans px-9 pt-9 pb-16 bg-green-300 rounded-3xl shadow-lg'>
-                <p className='text-center text-lg'>
-                    Welcome to Notator!
+            <div className='relative w-64 self-center font-sans px-8 pt-9 pb-14 bg-green-300 rounded-3xl shadow-lg'>
+                <p className='text-xl pt-0.5'>
+                    Welcome to Notator
                 </p>
                 <p className='float-right text-gray-600 text-sm'>
                     ver. 0.6
@@ -115,7 +115,7 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
                 }}>
                     <div>
                         <input type='text'
-                            className='w-full'
+                            className='w-full bg-green-100 focus:outline-none border-b-2 border-green-400 shadow-inner rounded-sm px-1 mt-1 mb-0.5'
                             placeholder='Username'
                             value={username}
                             onChange={(event) => setUsername(event.target.value)} />
@@ -123,23 +123,25 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
 
                     <div>
                         <input type='password'
-                            className='w-full'
+                            className='w-full bg-green-100 focus:outline-none border-b-2 border-green-400 shadow-inner rounded-sm px-1 mt-1 mb-0.5'
                             placeholder='Password'
                             value={password}
                             onChange={(event) => setPassword(event.target.value)} />
                     </div>
 
-                    <div>
-                        <input type='submit' value='Login' ref={loginRef} />
-                        <button onClick={() => onSignup(username, password)} ref={signupRef}>
+                    <div className='flex flex-row'>
+                        <input className='flex-auto bg-green-200 focus:outline-none hover:bg-green-400 shadow-md rounded-sm py-0.5 my-2 cursor-pointer'
+                            type='submit' value='Login' ref={loginRef} />
+                        <button className='flex-auto bg-green-200 focus:outline-none hover:bg-green-400 shadow-md rounded-sm py-0.5 my-2 ml-1'
+                            onClick={() => onSignup(username, password)} ref={signupRef}>
                             Signup
                         </button>
                     </div>
                 </form>
 
-                <div>
+                <p className='absolute italic pl-0.5'>
                     {message}
-                </div>
+                </p>
             </div>
         </div>
     );
