@@ -196,9 +196,9 @@ export default function Subjects(props: ISubjectsProps) {
 
 
     return (
-        <span className='h-auto '>
+        <span className='flex flex-nowrap justify-start w-3/5 h-auto'>
             {(!edit && !create) &&
-                <select className='w-52 bg-green-100'
+                <select className='w-52 h-7 mx-0.5 focus:outline-none rounded-sm shadow-inner bg-green-100'
                     value={subjectId ?? 'default'}
                     onChange={(event) => setSubjectId(Number(event.target.value))}>
                     <option key={'default'} value='default' disabled>

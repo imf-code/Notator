@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { HeaderSubmit } from "./HeaderButtons";
 
 interface ICreateSubjectProps {
@@ -13,6 +13,13 @@ export default function CreateSubject(props: ICreateSubjectProps) {
     const [newSubject, setNewSubject] = useState<string>('');
 
     const submitRef = useRef<HTMLInputElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (inputRef.current) inputRef.current.focus();
+    },
+        []
+    );
 
     async function onFinish(name: string) {
         if (!name) return;
@@ -30,10 +37,12 @@ export default function CreateSubject(props: ICreateSubjectProps) {
                 event.preventDefault();
                 onFinish(newSubject);
             }}>
-                
+
             <input
                 type='text'
-                placeholder='Create a new note...'
+                className='w-52 h-7 mx-0.5 focus:outline-none rounded-sm shadow-inner bg-green-100'
+                ref={inputRef}
+                placeholder='Enter name...'
                 value={newSubject}
                 onChange={(event) => setNewSubject(event.target.value)}
             />

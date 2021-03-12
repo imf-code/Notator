@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import HeaderButton, { HeaderSubmit } from "./HeaderButtons";
 
 interface ISubjectProps {
@@ -19,6 +19,13 @@ export default function EditSubject(props: ISubjectProps) {
     const [editedName, setEditedName] = useState<string>(props.name);
 
     const editRef = useRef<HTMLInputElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (inputRef.current) inputRef.current.focus();
+    },
+        []
+    );
 
     function onStopEdit() {
         if (!editedName) {
@@ -48,9 +55,16 @@ export default function EditSubject(props: ISubjectProps) {
                         event.preventDefault();
                         onStopEdit();
                     }}>
-                    <input type='text' value={editedName} onChange={event => setEditedName(event.target.value)} />
+
+                    <input
+                        type='text'
+                        ref={inputRef}
+                        className='w-52 h-7 px-1 mx-0.5 focus:outline-none rounded-sm shadow-inner bg-green-100'
+                        value={editedName}
+                        onChange={event => setEditedName(event.target.value)} />
+
                     <HeaderSubmit ref={editRef} value='Save' />
-                    {/* <input type='button' onClick={props.cancelEdit} value='Cancel' /> */}
+
                     <HeaderButton onClick={props.cancelEdit} >
                         Cancel
                     </HeaderButton>
