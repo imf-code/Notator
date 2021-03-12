@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ISubject } from './Interfaces';
 import CreateSubject from './Subject.Create';
 import EditSubject from './Subject.Edit';
+import HeaderButton from './HeaderButtons';
 
 interface ISubjectsProps {
     /** Set currently selected subject. */
@@ -195,15 +196,19 @@ export default function Subjects(props: ISubjectsProps) {
 
 
     return (
-        <span>
+        <span className='h-auto '>
             {(!edit && !create) &&
-                <select value={subjectId ?? 'default'} onChange={(event) => setSubjectId(Number(event.target.value))}>
+                <select className='w-52 bg-green-100'
+                    value={subjectId ?? 'default'}
+                    onChange={(event) => setSubjectId(Number(event.target.value))}>
                     <option key={'default'} value='default' disabled>
                         Select a subject...
                     </option>
                     {optionArray}
                 </select>}
+
             {create && <CreateSubject {...{ addSubject }} />}
+
             {(edit && subject) &&
                 <EditSubject
                     onEdit={renameSubject}
@@ -211,18 +216,21 @@ export default function Subjects(props: ISubjectsProps) {
                     id={subject.id}
                     name={subject.name}
                 />}
+
             {!edit &&
-                <button onClick={() => setCreate(!create)}>
+                <HeaderButton
+                    onClick={() => setCreate(!create)}>
                     {create ? 'Cancel' : 'Add'}
-                </button>}
-            {(!create && !edit) &&
-                <button onClick={() => setEdit(true)}>
+                </HeaderButton>}
+
+            {(subjectId && (!create && !edit)) &&
+                <HeaderButton onClick={() => setEdit(true)}>
                     Edit
-                </button>}
-            <button onClick={() => deleteSubject(subjectId)}>
+                </HeaderButton>}
+
+            <HeaderButton onClick={() => deleteSubject(subjectId)}>
                 Delete
-            </button>
+            </HeaderButton>
         </span >
     );
 }
-

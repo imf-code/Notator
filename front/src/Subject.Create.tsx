@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { HeaderSubmit } from "./HeaderButtons";
 
 interface ICreateSubjectProps {
     /** Function that handles the creation of a new subject
@@ -29,6 +30,7 @@ export default function CreateSubject(props: ICreateSubjectProps) {
                 event.preventDefault();
                 onFinish(newSubject);
             }}>
+                
             <input
                 type='text'
                 placeholder='Create a new note...'
@@ -36,10 +38,8 @@ export default function CreateSubject(props: ICreateSubjectProps) {
                 onChange={(event) => setNewSubject(event.target.value)}
             />
 
-            <input
-                type='submit'
-                value='Create'
-            />
+            <HeaderSubmit value='Create' />
+
         </form>
     );
 }

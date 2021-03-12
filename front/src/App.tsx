@@ -61,13 +61,27 @@ function App() {
 
   return (
     <div className='h-screen bg-yellow-50'>
-      {userData && `Welcome, ${userData.name}!`}
-      {!loginStatus ? <LoginForm {...{ setLoginStatus }} /> :
-        <Logout {...{ setLoginStatus }} />}
-      <br />
-      {loginStatus && <span>Select a Subject: <Subjects {...{ setCurrentSubject }} /></span>}
-      <br />
+
+      {loginStatus ?
+        <div className='flex justify-between w-screen h-10 py-1 px-2 bg-green-300'>
+
+          {userData && <span className='text-lg'>
+            Notes of&nbsp;
+            <span className='capitalize'>
+              {userData.name}
+            </span>
+          </span>}
+
+          <Subjects {...{ setCurrentSubject }} />
+
+          <Logout {...{ setLoginStatus }} />
+
+        </div> :
+
+        <LoginForm {...{ setLoginStatus }} />}
+
       {currentSubject && <MainView subId={currentSubject} />}
+
     </div>
   );
 }

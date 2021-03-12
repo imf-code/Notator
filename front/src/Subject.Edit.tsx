@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import HeaderButton, { HeaderSubmit } from "./HeaderButtons";
 
 interface ISubjectProps {
     /** Subject ID*/
@@ -48,8 +49,11 @@ export default function EditSubject(props: ISubjectProps) {
                         onStopEdit();
                     }}>
                     <input type='text' value={editedName} onChange={event => setEditedName(event.target.value)} />
-                    <input type='submit' ref={editRef} value='Save' />
-                    <input type='button' onClick={props.cancelEdit} value='Cancel' />
+                    <HeaderSubmit ref={editRef} value='Save' />
+                    {/* <input type='button' onClick={props.cancelEdit} value='Cancel' /> */}
+                    <HeaderButton onClick={props.cancelEdit} >
+                        Cancel
+                    </HeaderButton>
                 </form>
             </span>
         </span>
