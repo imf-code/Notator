@@ -8,7 +8,7 @@ interface ICreateSubjectProps {
 }
 
 /** Component that includes the form for creating a new note */
-export default function CreatedSubject(props: ICreateSubjectProps) {
+export default function CreateSubject(props: ICreateSubjectProps) {
     const [newSubject, setNewSubject] = useState<string>('');
 
     const submitRef = useRef<HTMLInputElement>(null);

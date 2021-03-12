@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useEffect, useMemo, useState } from 'react';
 import { ISubject } from './Interfaces';
-import CreatedSubject from './Subject.Create';
+import CreateSubject from './Subject.Create';
 import EditSubject from './Subject.Edit';
 
 interface ISubjectsProps {
@@ -203,7 +203,7 @@ export default function Subjects(props: ISubjectsProps) {
                     </option>
                     {optionArray}
                 </select>}
-            {create && <CreatedSubject {...{ addSubject }} />}
+            {create && <CreateSubject {...{ addSubject }} />}
             {(edit && subject) &&
                 <EditSubject
                     onEdit={renameSubject}
