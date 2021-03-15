@@ -223,8 +223,8 @@ export default function Subjects(props: ISubjectsProps) {
                     {create ? 'Cancel' : 'Add'}
                 </HeaderButton>}
 
-            {(subjectId && (!create && !edit)) &&
-                <HeaderButton onClick={() => setEdit(true)}>
+            {((!create && !edit)) &&
+                <HeaderButton onClick={() => setEdit(true)} disabled={typeof subjectId === 'number' ? false : true}>
                     Edit
                 </HeaderButton>}
 
