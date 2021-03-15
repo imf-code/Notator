@@ -11,7 +11,7 @@ export default function HeaderButton(props: IHeaderButtonProps) {
 
     return <button
         // eslint-disable-next-line
-        className={'text-center align-top font-sans bg-green-200 focus:outline-none hover:bg-green-400 disabled:opacity-50 shadow-md rounded-sm px-1 py-0.5 mx-0.5 w-16 h-7' + ' ' + props.className}
+        className={'select-none text-center align-top font-sans bg-green-200 focus:outline-none hover:bg-green-400 disabled:opacity-50 shadow-md rounded-sm px-1 py-0.5 mx-0.5 w-16 h-7' + ' ' + props.className}
         onClick={props.onClick}
         disabled={props.disabled ? true : false}>
         {props.children}
@@ -31,7 +31,7 @@ const HeaderFormRenderFunction: React.ForwardRefRenderFunction<HTMLInputElement,
         ref={ref}
         onClick={props.onClick}
         // eslint-disable-next-line
-        className={'text-center align-top font-sans bg-green-200 focus:outline-none hover:bg-green-400 cursor-pointer disabled:opacity-50 shadow-md rounded-sm px-1 py-0.5 mx-0.5 w-16 h-7' + ' ' + props.className}
+        className={'select-none text-center align-top font-sans bg-green-200 focus:outline-none hover:bg-green-400 cursor-pointer disabled:opacity-50 shadow-md rounded-sm px-1 py-0.5 mx-0.5 w-16 h-7' + ' ' + props.className}
         value={props.value} />
 }
 

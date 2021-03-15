@@ -60,17 +60,17 @@ function App() {
   );
 
   return (
-    <div className='h-screen bg-yellow-50'>
+    <div className='flex flex-col h-screen bg-yellow-50 overflow-hidden'>
 
       {loginStatus ?
-        <div className='flex justify-between w-full h-11 pt-2 px-2 bg-green-300'>
+        <div className='flex top-0 justify-between w-full h-11 pt-2 px-2 bg-green-300'>
 
-          {userData && <span className='text-lg font-medium'>
+          {userData && <div className='text-lg font-medium select-none cursor-pointer' onClick={() => window.location.reload()}>
             Notes of&nbsp;
             <span className='capitalize'>
               {userData.name}
             </span>
-          </span>}
+          </div>}
 
           <Subjects {...{ setCurrentSubject }} />
 
