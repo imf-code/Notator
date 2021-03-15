@@ -63,7 +63,7 @@ function App() {
     <div className='h-screen bg-yellow-50'>
 
       {loginStatus ?
-        <div className='flex justify-between w-screen h-11 pt-2 px-1 bg-green-300'>
+        <div className='flex justify-between w-full h-11 pt-2 px-2 bg-green-300'>
 
           {userData && <span className='text-lg font-medium'>
             Notes of&nbsp;
