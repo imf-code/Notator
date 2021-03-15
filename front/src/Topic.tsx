@@ -56,7 +56,7 @@ export default function Topic(props: ITopicProps) {
         }
     }
     return (
-        <div>
+        <div className='w-44'>
             {edit ?
                 <span>
                     <input type='text' value={editedName} onChange={event => setEditedName(event.target.value)} />
@@ -76,6 +76,6 @@ export default function Topic(props: ITopicProps) {
             </button>
 
             {props.children}
-        </div >
+        </div>
     )
 }

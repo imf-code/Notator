@@ -239,7 +239,7 @@ export default function MainView(props: ITopicsProps) {
             return;
         }
 
-        const newNote = {...oldNote, text: text} as INoteWithTopic;
+        const newNote = { ...oldNote, text: text } as INoteWithTopic;
         newNotes.set(noteId, newNote);
 
         const updatedNote = await apiResponse;
@@ -391,7 +391,9 @@ export default function MainView(props: ITopicsProps) {
     return (
         <div>
             <CreateTopic addTopic={addTopic} />
-            {topicAndNoteArray}
+            <div className='flex flex-nowrap flex-row'>
+                {topicAndNoteArray}
+            </div>
         </div>
     );
 }

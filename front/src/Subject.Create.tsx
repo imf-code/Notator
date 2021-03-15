@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { HeaderSubmit } from "./HeaderButtons";
+import { HeaderFormButton } from "./HeaderButtons";
 
 interface ICreateSubjectProps {
     /** Function that handles the creation of a new subject
@@ -47,7 +47,7 @@ export default function CreateSubject(props: ICreateSubjectProps) {
                 onChange={(event) => setNewSubject(event.target.value)}
             />
 
-            <HeaderSubmit value='Create' />
+            <HeaderFormButton type='submit' value='Create' />
 
         </form>
     );
