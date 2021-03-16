@@ -65,7 +65,7 @@ function App() {
       {loginStatus ?
         <div className='flex top-0 justify-between w-full h-11 pt-2 px-2 bg-green-300'>
 
-          {userData && <div className='text-lg font-medium select-none cursor-pointer' onClick={() => window.location.reload()}>
+          {userData && <div className='text-xl font-medium select-none cursor-pointer' onClick={() => window.location.reload()}>
             Notes of&nbsp;
             <span className='capitalize'>
               {userData.name}

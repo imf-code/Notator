@@ -1,5 +1,5 @@
 import axios from 'axios';
-import HeaderButton from './HeaderButtons';
+import { HeaderButton } from './Buttons.Header';
 
 interface ILogout {
     setLoginStatus?: React.Dispatch<React.SetStateAction<boolean>>

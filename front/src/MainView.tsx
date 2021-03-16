@@ -389,9 +389,11 @@ export default function MainView(props: ITopicsProps) {
     );
 
     return (
-        <div className='h-full w-full bg-yellow-50 overflow-x-scroll'>
-            <CreateTopic addTopic={addTopic} />
-            <div className='flex flex-nowrap flex-row'>
+        <div className='flex flex-col flex-grow w-full bg-yellow-50 overflow-x-scroll'>
+            <div className='mx-4 mt-2'>
+                <CreateTopic addTopic={addTopic} />
+            </div>
+            <div className='flex h-full flex-nowrap flex-row px-2 pb-2'>
                 {topicAndNoteArray}
             </div>
         </div>

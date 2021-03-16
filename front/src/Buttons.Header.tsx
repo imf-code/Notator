@@ -7,16 +7,19 @@ interface IHeaderButtonProps {
     disabled?: boolean;
 }
 
-export default function HeaderButton(props: IHeaderButtonProps) {
+const HeaderButtonRenderFunction: React.ForwardRefRenderFunction<HTMLButtonElement, IHeaderButtonProps> = (props, ref) => {
 
     return <button
         // eslint-disable-next-line
         className={'select-none text-center align-top font-sans bg-green-200 focus:outline-none hover:bg-green-400 disabled:opacity-50 shadow-md rounded-sm px-1 py-0.5 mx-0.5 w-16 h-7' + ' ' + props.className}
+        ref={ref}
         onClick={props.onClick}
         disabled={props.disabled ? true : false}>
         {props.children}
     </button>
 }
+
+export const HeaderButton = React.forwardRef(HeaderButtonRenderFunction);
 
 interface IHeaderFormProps {
     type: string;

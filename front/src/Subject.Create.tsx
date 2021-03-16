@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { HeaderFormButton } from "./HeaderButtons";
+import { HeaderFormButton } from "./Buttons.Header";
 
 interface ICreateSubjectProps {
     /** Function that handles the creation of a new subject

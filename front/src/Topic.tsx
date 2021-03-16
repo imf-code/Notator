@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { HeaderButton } from "./Buttons.Header";
 
 interface ITopicProps {
     /** Child components if any. Note components expected */
@@ -56,24 +57,26 @@ export default function Topic(props: ITopicProps) {
         }
     }
     return (
-        <div className='w-44'>
-            {edit ?
-                <span>
-                    <input type='text' value={editedName} onChange={event => setEditedName(event.target.value)} />
-                    <button onClick={onStopEdit} ref={editRef}>
-                        {editedName === props.name || !editedName ? 'Cancel' : 'Save'}
-                    </button>
-                </span> :
-                <span>
-                    {props.name}
-                    <button onClick={() => setEdit(true)}>
-                        Edit
-                    </button>
-                </span>}
-
-            <button onClick={() => props.onDelete(props.id)}>
-                Delete
-            </button>
+        <div className='flex-none p-4 w-72 m-2 bg-green-200 rounded-md shadow-md'>
+            <div className='flex justify-between m-1'>
+                {edit ?
+                    <input type='text' value={editedName} onChange={event => setEditedName(event.target.value)} /> :
+                    <p className='text-lg truncate font-medium'>
+                        {props.name}
+                    </p>}
+                <div>
+                    {edit ?
+                        <HeaderButton onClick={onStopEdit} ref={editRef}>
+                            {editedName === props.name || !editedName ? 'Cancel' : 'Save'}
+                        </HeaderButton> :
+                        <HeaderButton onClick={() => setEdit(true)}>
+                            Edit
+                        </HeaderButton>}
+                    <HeaderButton onClick={() => props.onDelete(props.id)}>
+                        Delete
+                    </HeaderButton>
+                </div>
+            </div>
 
             {props.children}
         </div>

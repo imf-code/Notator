@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ISubject } from './Interfaces';
 import CreateSubject from './Subject.Create';
 import EditSubject from './Subject.Edit';
-import HeaderButton from './HeaderButtons';
+import { HeaderButton } from './Buttons.Header';
 
 interface ISubjectsProps {
     /** Set currently selected subject. */
