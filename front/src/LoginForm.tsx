@@ -87,7 +87,6 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
         })
             .then((resp) => {
                 if (resp.status === 201) {
-                    setMessage(resp.data);
                     onLogin(storedUsername, storedPassword);
                 }
                 else setMessage('Something went wrong with your signup attempt. Please try again later.');
