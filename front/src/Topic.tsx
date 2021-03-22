@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { iconStyle } from './Buttons.Icons';
 
 // Icons
@@ -37,6 +37,14 @@ export default function Topic(props: ITopicProps) {
     const [editedName, setEditedName] = useState<string>(props.name);
 
     const editRef = useRef<HTMLButtonElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (!edit) return;
+        else if (inputRef.current) inputRef.current.focus();
+    },
+        [edit]
+    );
 
     /**
      * Handle editing of name
@@ -71,11 +79,12 @@ export default function Topic(props: ITopicProps) {
 
     return (
         <div className='flex-none p-4 w-72 m-2 bg-green-200 rounded-md shadow-md'>
-            <div className='flex justify-between mb-2 mt-1'>
+            <div className='flex justify-between my-1'>
                 <div className='w-5/6'>
                     {edit ?
                         <input type='text' value={editedName} onChange={event => setEditedName(event.target.value)}
-                            className='w-52 h-7 px-1 mx-0.5 focus:outline-none rounded-sm shadow-inner bg-green-100' /> :
+                            ref={inputRef}
+                            className='text-lg font-medium w-full h-7 px-1 -mx-1 focus:outline-none rounded-sm shadow-inner bg-green-100' /> :
                         <p className='text-lg truncate font-medium'>
                             {props.name}
                         </p>}

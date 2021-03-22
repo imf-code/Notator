@@ -147,7 +147,7 @@ export default function MainView(props: ITopicsProps) {
                 if (resp.status === 200) return resp.data.id as number;
                 else throw new Error();
             }).catch(err => {
-                console.log(err);
+                console.log(err.response.data);
                 alert('Something went wrong while deleting the topic. Please try again later.');
                 return null;
             });
@@ -320,8 +320,8 @@ export default function MainView(props: ITopicsProps) {
                 if (resp.status === 200) return resp.data.id as number;
                 else throw new Error();
             }).catch(err => {
-                console.log(err);
-                alert('Something went wrong while deleting the topic. Please try again later.');
+                console.log(err.response.data);
+                alert('Something went wrong while deleting the note. Please try again later.');
                 return null;
             });
 

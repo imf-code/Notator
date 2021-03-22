@@ -29,7 +29,8 @@ export default function Note(props: INoteProps) {
     const [edit, setEdit] = useState<boolean>(false);
     const [editedText, setEditedText] = useState<string>(props.text);
 
-    const editRef = useRef<HTMLButtonElement>(null);
+    const submitRef = useRef<HTMLInputElement>(null);
+    const deleteRef = useRef<HTMLButtonElement>(null);
 
     /**
      * Handle editing of text
@@ -46,11 +47,11 @@ export default function Note(props: INoteProps) {
         }
         else {
             (async () => {
-                if (editRef.current) editRef.current.disabled = true;
+                if (submitRef.current) submitRef.current.disabled = true;
 
                 await props.onEdit(props.id, editedText);
 
-                if (editRef.current) editRef.current.disabled = false;
+                if (submitRef.current) submitRef.current.disabled = false;
                 setEdit(false);
             })();
         }
@@ -63,21 +64,26 @@ export default function Note(props: INoteProps) {
     }
 
     return (
-        <div className='flex justify-between my-1'>
+        <form className='flex justify-between my-1'
+            onSubmit={e => {
+                e.preventDefault();
+                onStopEdit();
+            }}>
             <div className='w-5/6'>
                 {edit ?
-                    <input type='text' value={editedText} onChange={event => setEditedText(event.target.value)} /> :
-                    <p className='truncate'>
+                    <input className='w-full align-middle px-1 -mt-1 -mx-1 focus:outline-none rounded-sm shadow-inner bg-green-100'
+                        type='text' value={editedText} onChange={event => setEditedText(event.target.value)} /> :
+                    <p>
                         {props.text}
                     </p>}
             </div>
 
             <div>
                 {edit ?
-                    <button onClick={onStopEdit} ref={editRef}
-                        className='focus:outline-none'>
+                    <label>
+                        <input type='submit' hidden />
                         <SaveAltIcon fontSize='small' className={iconStyle} />
-                    </button> :
+                    </label> :
                     <button onClick={() => setEdit(true)}
                         className='focus:outline-none'>
                         <EditIcon fontSize='small' className={iconStyle} />
@@ -87,11 +93,18 @@ export default function Note(props: INoteProps) {
                         className='focus:outline-none'>
                         <CancelIcon fontSize='small' className={iconStyle} />
                     </button> :
-                    <button onClick={() => props.onDelete(props.id)}
-                        className='focus:outline-none'>
+                    <button ref={deleteRef} className='focus:outline-none disabled:opacity-50'
+                        onClick={() => {
+                            if (deleteRef.current && !deleteRef.current.disabled) {
+                                deleteRef.current.disabled = true;
+                                props.onDelete(props.id);
+                                return;
+                            }
+                            else return;
+                        }}>
                         <DeleteIcon fontSize='small' className={iconStyle} />
                     </button>}
             </div>
-        </div>
+        </form>
     )
 }
