@@ -1,5 +1,13 @@
 import { useRef, useState } from 'react';
 import { INote } from './Interfaces';
+import { iconStyle } from './Buttons.Icons';
+
+// Icons
+import EditIcon from '@material-ui/icons/Edit';
+import SaveAltIcon from '@material-ui/icons/SaveAlt';
+import CancelIcon from '@material-ui/icons/Cancel';
+import DeleteIcon from '@material-ui/icons/Delete';
+
 
 interface INoteProps extends INote {
     /**
@@ -47,25 +55,43 @@ export default function Note(props: INoteProps) {
             })();
         }
     }
-    return (
-        <div>
-            {edit ?
-                <span>
-                    <input type='text' value={editedText} onChange={event => setEditedText(event.target.value)} />
-                    <button onClick={onStopEdit} ref={editRef}>
-                        {editedText === props.text || !editedText ? 'Cancel' : 'Save'}
-                    </button>
-                </span> :
-                <span>
-                    {props.text}
-                    <button onClick={() => setEdit(true)}>
-                        Edit
-                    </button>
-                </span>}
 
-            <button onClick={() => props.onDelete(props.id)}>
-                Delete
-            </button>
-        </div >
+    function onCancelEdit() {
+        setEditedText(props.text);
+        setEdit(false);
+        return;
+    }
+
+    return (
+        <div className='flex justify-between my-1'>
+            <div className='w-5/6'>
+                {edit ?
+                    <input type='text' value={editedText} onChange={event => setEditedText(event.target.value)} /> :
+                    <p className='truncate'>
+                        {props.text}
+                    </p>}
+            </div>
+
+            <div>
+                {edit ?
+                    <button onClick={onStopEdit} ref={editRef}
+                        className='focus:outline-none'>
+                        <SaveAltIcon fontSize='small' className={iconStyle} />
+                    </button> :
+                    <button onClick={() => setEdit(true)}
+                        className='focus:outline-none'>
+                        <EditIcon fontSize='small' className={iconStyle} />
+                    </button>}
+                {edit ?
+                    <button onClick={onCancelEdit}
+                        className='focus:outline-none'>
+                        <CancelIcon fontSize='small' className={iconStyle} />
+                    </button> :
+                    <button onClick={() => props.onDelete(props.id)}
+                        className='focus:outline-none'>
+                        <DeleteIcon fontSize='small' className={iconStyle} />
+                    </button>}
+            </div>
+        </div>
     )
 }
