@@ -375,9 +375,9 @@ export default function MainView(props: ITopicsProps) {
                     name={topicName}
                     onEdit={renameTopic}
                     onDelete={deleteTopic} >
-                    <div>
-                        <CreateNote key={topicId} addNote={addNote} topicId={topicId} />
-                        {noteElements}
+                    <CreateNote key={topicId} addNote={addNote} topicId={topicId} />
+                    <div className='overflow-y-scroll h-full -mr-1.5 bar-sm'>
+                        {noteElements ?? null}
                     </div>
                 </Topic>
             );
@@ -393,7 +393,7 @@ export default function MainView(props: ITopicsProps) {
             <div className='mx-4 mt-2'>
                 <CreateTopic addTopic={addTopic} />
             </div>
-            <div className='flex h-full flex-nowrap flex-row px-2 pb-2'>
+            <div className='flex h-full flex-nowrap overflow-hidden flex-row px-2 pb-2'>
                 {topicAndNoteArray}
             </div>
         </div>

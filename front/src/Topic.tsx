@@ -9,7 +9,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 
 interface ITopicProps {
     /** Child components if any. Note components expected */
-    children?: JSX.Element | JSX.Element[];
+    children?: JSX.Element | JSX.Element[] | Array<JSX.Element | JSX.Element[] | null>;
     /** Topic ID */
     id: number;
     /** Topic name */
@@ -78,7 +78,7 @@ export default function Topic(props: ITopicProps) {
     }
 
     return (
-        <div className='flex-none p-4 w-72 m-2 bg-green-200 rounded-md shadow-md'>
+        <div className='flex-none overflow-hidden p-4 w-72 m-2 bg-green-200 rounded-md shadow-md'>
             <div className='flex justify-between my-1'>
                 <div className='w-5/6'>
                     {edit ?
@@ -113,6 +113,10 @@ export default function Topic(props: ITopicProps) {
             </div>
 
             {props.children}
+
+            <div className='h-4'>
+
+            </div>
         </div>
     )
 }
