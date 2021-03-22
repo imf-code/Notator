@@ -3,15 +3,13 @@ import { INote } from './Interfaces';
 
 interface INoteProps extends INote {
     /**
-     * Function for handling editing of a note
-     * @param topicId ID of the parent topic
+     * Edit handler
      * @param noteId ID of the note to be modified
      * @param name New text for the note
      */
     onEdit: (noteId: number, name: string) => Promise<void>;
     /**
-     * Function for deleting the note
-     * @param topicId ID of the parent topic
+     * Delete handler
      * @param noteId ID of the note to be deleted
      */
     onDelete: (noteId: number) => Promise<void>
