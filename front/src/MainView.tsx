@@ -12,6 +12,7 @@ interface ITopicsProps {
 }
 
 interface INoteWithTopic extends INote {
+    /** Topic ID */
     topicId: number;
 }
 
@@ -21,7 +22,7 @@ export default function MainView(props: ITopicsProps) {
     const [localNotes, setLocalNotes] = useState<Map<number, INoteWithTopic> | undefined>(undefined);
     const [localTopics, setLocalTopics] = useState<Map<number, string> | undefined>(undefined);
 
-    // GET Topics and Notes
+    // GET Topics and Notes from API and transform them into Map objects
     useEffect(() => {
         (async () => {
             const apiResponse = axios.get(`/api/topic/${props.subId}/with-notes`)
@@ -209,7 +210,6 @@ export default function MainView(props: ITopicsProps) {
 
     /**
      * Edit the text of a note
-     * @param topicId ID of the parent topic
      * @param noteId ID of the note to be modified
      * @param text New text for the note
      */
@@ -306,7 +306,6 @@ export default function MainView(props: ITopicsProps) {
 
     /**
      * Delete a note
-     * @param topicId ID of the parent topic
      * @param noteId ID of the note to be deleted
      */
     const deleteNote = useCallback(async (noteId: number) => {
@@ -340,7 +339,7 @@ export default function MainView(props: ITopicsProps) {
     );
 
     /**
-     * A Map object including an array of Note components under each topic ID. 
+     * Array of Note components for each topic
      */
     const noteMap = useMemo(() => {
         if (!localNotes) return null;

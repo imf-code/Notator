@@ -8,28 +8,27 @@ import CancelIcon from '@material-ui/icons/Cancel';
 import DeleteIcon from '@material-ui/icons/Delete';
 
 interface ITopicProps {
-    /** Child components if any. Note components expected */
+    /** Child components if any */
     children?: JSX.Element | JSX.Element[] | Array<JSX.Element | JSX.Element[] | null>;
     /** Topic ID */
     id: number;
     /** Topic name */
     name: string;
     /**
-     * Function for handling renaming of topic
+     * Handler for renaming a topic
      * @param topicId ID of the topic to be modified
      * @param name New name for the topic 
      */
     onEdit: (topicId: number, name: string) => Promise<void>;
     /**
-     * Function for deleting the topic
+     * Handler for deleting a topic
      * @param topicId ID of the topic to be deleted
      */
     onDelete: (topicId: number) => Promise<void>
 }
 
 /**
- * Component for displaying a single topic and all the notes related to it.
- * Includes rename and delete functionality.
+ * Component for manipulating and displaying a single topic as a column
  */
 export default function Topic(props: ITopicProps) {
 
@@ -47,7 +46,7 @@ export default function Topic(props: ITopicProps) {
     );
 
     /**
-     * Handle editing of name
+     * Handle editing of topic name
      */
     function onStopEdit() {
         if (!editedName) {

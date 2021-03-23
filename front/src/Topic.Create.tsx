@@ -1,13 +1,13 @@
 import { useRef, useState } from "react";
 
 interface ICreateTopicProps {
-    /** Function that handles the creation of new topic
+    /** Handler for creating a new topic
      * @param name Name of the new topic
      */
     addTopic: (name: string) => Promise<void>;
 }
 
-/** Component that includes the form for creating a new topic */
+/** Component for inputing a name for a new topic */
 export default function CreateTopic(props: ICreateTopicProps) {
     const [newTopic, setNewTopic] = useState<string>('');
 

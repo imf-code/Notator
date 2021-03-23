@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { HeaderFormButton } from "./Buttons.Header";
 
 interface ICreateSubjectProps {
-    /** Function that handles the creation of a new subject
-     * @param name Name of the new subject.
+    /** Handler function for creating a subject
+     * @param name Name of the new subject
      */
     addSubject: (name: string) => Promise<void>;
 }
 
-/** Component that includes the form for creating a new note */
+/** Component for inputting a name for new subject */
 export default function CreateSubject(props: ICreateSubjectProps) {
     const [newSubject, setNewSubject] = useState<string>('');
 

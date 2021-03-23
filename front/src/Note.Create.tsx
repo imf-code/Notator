@@ -34,7 +34,6 @@ export default function CreateNote(props: ICreateNoteProps) {
         <form className='flex justify-between sticky top-0 p-0 mb-2'
             onSubmit={event => {
                 event.preventDefault();
-                // if (submitRef.current && submitRef.current.disabled) return;
                 onFinish(newNote);
             }}>
 

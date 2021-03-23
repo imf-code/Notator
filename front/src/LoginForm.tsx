@@ -5,7 +5,7 @@ interface ILoginFormProps {
     setLoginStatus?: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-/** Component for handling login/signup. */
+/** Component for handling login/signup */
 export default function LoginForm(props: ILoginFormProps): JSX.Element {
     const [username, setUsername] = useState<string>('');
     const [password, setPassword] = useState<string>('');
@@ -14,6 +14,11 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
     const loginRef = useRef<HTMLInputElement>(null);
     const signupRef = useRef<HTMLButtonElement>(null);
 
+    /**
+     * Attempt login
+     * @param username Username
+     * @param password Password
+     */
     async function onLogin(username: string, password: string) {
         if (!username) {
             setMessage('Username required.');
@@ -66,6 +71,11 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
         if (loginRef.current) loginRef.current.disabled = false;
     }
 
+    /**
+     * Attempt signup. Login on success
+     * @param username Username
+     * @param password Password
+     */
     async function onSignup(username: string, password: string) {
         if (!username) {
             setMessage('Username required.');

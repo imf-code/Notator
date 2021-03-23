@@ -23,7 +23,7 @@ interface INoteProps extends INote {
     onDelete: (noteId: number) => Promise<void>
 }
 
-/** Component for displaying and manipulating a single note. TODO: ADD, EDIT, MOVE, DELETE */
+/** Component for displaying and manipulating a single note */
 export default function Note(props: INoteProps) {
 
     const [edit, setEdit] = useState<boolean>(false);
