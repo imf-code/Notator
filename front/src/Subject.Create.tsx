@@ -40,7 +40,7 @@ export default function CreateSubject(props: ICreateSubjectProps) {
 
             <input
                 type='text'
-                className='w-52 h-7 mx-0.5 focus:outline-none rounded-sm shadow-inner bg-green-100'
+                className='w-52 h-7 mx-0.5 p-1 focus:outline-none rounded-sm shadow-inner bg-green-100'
                 ref={inputRef}
                 placeholder='Enter name...'
                 value={newSubject}

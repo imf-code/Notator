@@ -31,14 +31,14 @@ export default function CreateNote(props: ICreateNoteProps) {
     }
 
     return (
-        <form className='flex justify-between sticky top-0 p-0 mb-2'
+        <form className='flex justify-between p-0 mb-2'
             onSubmit={event => {
                 event.preventDefault();
                 onFinish(newNote);
             }}>
 
             <input
-                className='align-middle w-5/6 h-7 px-1 -mx-1 focus:outline-none rounded-sm shadow-inner bg-green-100'
+                className='align-middle w-5/6 h-7 px-1 focus:outline-none rounded-sm shadow-inner bg-green-100'
                 type='text'
                 placeholder='Create a new note...'
                 value={newNote}

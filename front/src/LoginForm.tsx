@@ -116,7 +116,7 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
                     Welcome to Notator
                 </p>
                 <p className='float-right text-gray-600 text-sm'>
-                    ver. 0.7
+                    ver. 0.8
                 </p>
                 <form onSubmit={event => {
                     event.preventDefault();

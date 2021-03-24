@@ -69,25 +69,8 @@ export default function Note(props: INoteProps) {
                 e.preventDefault();
                 onStopEdit();
             }}>
-            <div className='w-5/6'>
-                {edit ?
-                    <input className='w-full align-middle px-1 -mt-1 -mx-1 focus:outline-none rounded-sm shadow-inner bg-green-100'
-                        type='text' value={editedText} onChange={event => setEditedText(event.target.value)} /> :
-                    <p>
-                        {props.text}
-                    </p>}
-            </div>
 
             <div>
-                {edit ?
-                    <label>
-                        <input type='submit' hidden />
-                        <SaveAltIcon fontSize='small' className={iconStyle} />
-                    </label> :
-                    <button onClick={() => setEdit(true)}
-                        className='focus:outline-none'>
-                        <EditIcon fontSize='small' className={iconStyle} />
-                    </button>}
                 {edit ?
                     <button onClick={onCancelEdit}
                         className='focus:outline-none'>
@@ -104,7 +87,27 @@ export default function Note(props: INoteProps) {
                         }}>
                         <DeleteIcon fontSize='small' className={iconStyle} />
                     </button>}
+
+                {edit ?
+                    <label>
+                        <input type='submit' hidden />
+                        <SaveAltIcon fontSize='small' className={iconStyle} />
+                    </label> :
+                    <button onClick={() => setEdit(true)}
+                        className='focus:outline-none'>
+                        <EditIcon fontSize='small' className={iconStyle} />
+                    </button>}
             </div>
+
+            <div className='w-5/6'>
+                {edit ?
+                    <input className='w-full align-middle px-1 -mt-1 -mx-1 focus:outline-none rounded-sm shadow-inner bg-green-100'
+                        type='text' value={editedText} onChange={event => setEditedText(event.target.value)} /> :
+                    <p className='hover:bg-green-400 cursor-pointer'>
+                        {props.text}
+                    </p>}
+            </div>
+
         </form>
     )
 }
