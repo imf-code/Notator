@@ -21,6 +21,7 @@ export default function MainView(props: ITopicsProps) {
 
     const [localNotes, setLocalNotes] = useState<Map<number, INoteWithTopic> | undefined>(undefined);
     const [localTopics, setLocalTopics] = useState<Map<number, string> | undefined>(undefined);
+    const [selectedNote, setSelectedNote] = useState<number | undefined>(undefined);
 
     // GET Topics and Notes from API and transform them into Map objects
     useEffect(() => {
@@ -339,6 +340,17 @@ export default function MainView(props: ITopicsProps) {
     );
 
     /**
+     * Select/deselect a note
+     * @param noteId Note ID
+     */
+    const selectNote = useCallback((noteId: number) => {
+        if (noteId === selectedNote) setSelectedNote(undefined);
+        else setSelectedNote(noteId);
+    },
+        [selectedNote]
+    );
+
+    /**
      * Array of Note components for each topic
      */
     const noteMap = useMemo(() => {
@@ -347,7 +359,7 @@ export default function MainView(props: ITopicsProps) {
         const elementMap = new Map<number, JSX.Element[]>();
 
         localNotes.forEach(note => {
-            const newElement = <Note key={note.id} onEdit={editNote} onDelete={deleteNote} {...note} />;
+            const newElement = <Note key={note.id} selected={note.id === selectedNote} setSelected={selectNote} onEdit={editNote} onDelete={deleteNote} {...note} />;
             const existingNotes = elementMap.get(note.topicId);
 
             if (existingNotes) existingNotes.push(newElement);
@@ -356,7 +368,7 @@ export default function MainView(props: ITopicsProps) {
 
         return elementMap;
     },
-        [localNotes, editNote, deleteNote]
+        [localNotes, selectedNote, selectNote, editNote, deleteNote]
     );
 
     /** Array of Topic components with their Note children */

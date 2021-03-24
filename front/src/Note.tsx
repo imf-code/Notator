@@ -1,13 +1,5 @@
-import { useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { INote } from './Interfaces';
-import { iconStyle } from './Buttons.Icons';
-
-// Icons
-import EditIcon from '@material-ui/icons/Edit';
-import SaveAltIcon from '@material-ui/icons/SaveAlt';
-import CancelIcon from '@material-ui/icons/Cancel';
-import DeleteIcon from '@material-ui/icons/Delete';
-
 
 interface INoteProps extends INote {
     /**
@@ -21,6 +13,10 @@ interface INoteProps extends INote {
      * @param noteId ID of the note to be deleted
      */
     onDelete: (noteId: number) => Promise<void>
+    /** Whether the component is currently selected */
+    selected: boolean;
+    /** Handler for updating selected status */
+    setSelected: (id: number) => void;
 }
 
 /** Component for displaying and manipulating a single note */
@@ -28,15 +24,18 @@ export default function Note(props: INoteProps) {
 
     const [edit, setEdit] = useState<boolean>(false);
     const [editedText, setEditedText] = useState<string>(props.text);
+    const [confirmDelete, setConfirmDelete] = useState<boolean>(false);
 
-    const submitRef = useRef<HTMLInputElement>(null);
-    const deleteRef = useRef<HTMLButtonElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const submitDisabledRef = useRef<boolean>(false);
+    const deleteDisabledRef = useRef<boolean>(false);
 
     /**
      * Handle editing of text
      */
-    function onStopEdit() {
-        if (!editedText) {
+    function stopEdit() {
+        if (submitDisabledRef.current) return;
+        else if (!editedText) {
             setEditedText(props.text);
             setEdit(false);
             return;
@@ -47,65 +46,135 @@ export default function Note(props: INoteProps) {
         }
         else {
             (async () => {
-                if (submitRef.current) submitRef.current.disabled = true;
+
+                submitDisabledRef.current = true;
 
                 await props.onEdit(props.id, editedText);
 
-                if (submitRef.current) submitRef.current.disabled = false;
+                submitDisabledRef.current = false;
+
                 setEdit(false);
+                props.setSelected(props.id);
             })();
         }
     }
 
-    function onCancelEdit() {
+    const cancelEdit = useCallback(() => {
         setEditedText(props.text);
         setEdit(false);
         return;
-    }
+    },
+        [props.text]
+    );
+
+    useEffect(() => {
+        if (props.selected) return;
+        if (!props.selected && edit) cancelEdit();
+        if (!props.selected && confirmDelete) setConfirmDelete(false);
+        else return;
+    },
+        [props.selected, edit, confirmDelete, cancelEdit]
+    );
+
+    useEffect(() => {
+        if (inputRef.current) inputRef.current.focus();
+        else return;
+    },
+        [edit]
+    );
+
+    useEffect(() => {
+        setEditedText(props.text);
+    },
+        [props.text]
+    );
 
     return (
-        <form className='flex justify-between my-1'
+        <form className='flex my-1 mr-1'
             onSubmit={e => {
                 e.preventDefault();
-                onStopEdit();
+                stopEdit();
             }}>
 
-            <div>
-                {edit ?
-                    <button onClick={onCancelEdit}
-                        className='focus:outline-none'>
-                        <CancelIcon fontSize='small' className={iconStyle} />
-                    </button> :
-                    <button ref={deleteRef} className='focus:outline-none disabled:opacity-50'
-                        onClick={() => {
-                            if (deleteRef.current && !deleteRef.current.disabled) {
-                                deleteRef.current.disabled = true;
-                                props.onDelete(props.id);
-                                return;
-                            }
-                            else return;
-                        }}>
-                        <DeleteIcon fontSize='small' className={iconStyle} />
-                    </button>}
+            <div className={props.selected ? 'w-full bg-green-200 rounded-sm px-0.5' : 'w-full px-0.5'}>
+                {edit &&
+                    <input className='w-full align-middle px-1 -mt-1 -mx-1 focus:outline-none rounded-sm bg-green-200'
+                        ref={inputRef}
+                        type='text' value={editedText} onChange={event => setEditedText(event.target.value)} />}
 
-                {edit ?
-                    <label>
-                        <input type='submit' hidden />
-                        <SaveAltIcon fontSize='small' className={iconStyle} />
-                    </label> :
-                    <button onClick={() => setEdit(true)}
-                        className='focus:outline-none'>
-                        <EditIcon fontSize='small' className={iconStyle} />
-                    </button>}
-            </div>
+                {!edit &&
+                    (props.selected ?
+                        <div className=''>
+                            {props.text}
+                        </div> :
+                        <p className='hover:bg-green-300 hover:rounded-sm' onClick={() => props.setSelected(props.id)}>
+                            {props.text}
+                        </p>)}
 
-            <div className='w-5/6'>
-                {edit ?
-                    <input className='w-full align-middle px-1 -mt-1 -mx-1 focus:outline-none rounded-sm shadow-inner bg-green-100'
-                        type='text' value={editedText} onChange={event => setEditedText(event.target.value)} /> :
-                    <p className='hover:bg-green-400 cursor-pointer'>
-                        {props.text}
-                    </p>}
+                {(props.selected && !confirmDelete) &&
+                    <div className='flex flex-row flex-grow justify-around w-full text-sm border-t-2 border-green-100'>
+
+                        {edit ?
+                            <label>
+                                <input type='submit' hidden />
+                                <div className='underline cursor-pointer w-12 text-center'
+                                    onMouseDown={() => {
+                                        stopEdit();
+                                    }}>
+                                    Save
+                                </div>
+                            </label> :
+                            <div className='underline cursor-pointer w-12 text-center'
+                                onClick={() => setEdit(true)}>
+                                Edit
+                            </div>}
+
+                        {edit ?
+                            <div className='underline cursor-pointer w-12 text-center'
+                                onClick={cancelEdit}>
+                                Cancel
+                            </div> :
+                            <div className='underline cursor-pointer w-12 text-center'
+                                onClick={() => {
+                                    setConfirmDelete(true);
+                                }}>
+                                Delete
+                            </div>}
+
+                        <div className='underline cursor-pointer w-12 text-center'
+                            onClick={() => {
+                                if (edit) cancelEdit();
+                                props.setSelected(props.id);
+                            }}>
+                            Close
+                        </div>
+                    </div>}
+
+                {(props.selected && confirmDelete) &&
+                    <div className='flex flex-row justify-around w-full text-sm border-t-2 border-green-100'>
+                        <div className='underline cursor-pointer w-12 text-center'
+                            onClick={() => {
+                                if (!deleteDisabledRef.current) {
+                                    props.onDelete(props.id);
+                                    return;
+                                }
+                                else return;
+                            }}>
+                            Yes
+                        </div>
+
+                        <div className='w-12 text-center'>
+                            Delete
+                        </div>
+
+                        <div className='underline cursor-pointer w-12 text-center'
+                            onClick={() => {
+                                setConfirmDelete(false);
+                            }}>
+                            No
+                            </div>
+                    </div>}
+
             </div>
 
         </form>
