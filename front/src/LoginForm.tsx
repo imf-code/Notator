@@ -12,7 +12,7 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
     const [message, setMessage] = useState<string>('');
 
     const loginRef = useRef<HTMLInputElement>(null);
-    const signupRef = useRef<HTMLButtonElement>(null);
+    const signupRef = useRef<HTMLInputElement>(null);
 
     /**
      * Attempt login
@@ -30,29 +30,15 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
         }
 
         if (loginRef.current) loginRef.current.disabled = true;
+        if (signupRef.current) signupRef.current.disabled = true;
 
         (async () => {
-            const loggedIn = await axios.get('/api/auth/login_status')
-                .then(resp => {
-                    return resp.data as boolean;
-                })
-                .catch(err => {
-                    console.log(err);
-                    throw err;
-                });
-
-            if (loggedIn) {
-                setMessage('Already logged in. Log out before trying to log in again.');
-                return;
-            }
-
             const params = new URLSearchParams();
             params.append('username', username);
             params.append('password', password);
             axios.post('/api/auth/login', params)
                 .then((resp) => {
                     if (resp.status === 200) {
-                        setMessage('Login successful.');
                         if (props.setLoginStatus) props.setLoginStatus(true);
                     }
                     else setMessage('Something went wrong with your login attempt. Please try again later.');
@@ -69,6 +55,7 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
         });
 
         if (loginRef.current) loginRef.current.disabled = false;
+        if (signupRef.current) signupRef.current.disabled = false;
     }
 
     /**
@@ -90,6 +77,7 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
         const storedPassword = password;
 
         if (signupRef.current) signupRef.current.disabled = true;
+        if (loginRef.current) loginRef.current.disabled = true;
 
         axios.post(`/api/auth/signup`, {
             username: storedUsername,
@@ -107,6 +95,8 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
             });
 
         if (signupRef.current) signupRef.current.disabled = false;
+        if (loginRef.current) loginRef.current.disabled = false;
+
     }
 
     return (
@@ -141,10 +131,8 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
                     <div className='flex flex-row'>
                         <input className='flex-auto bg-green-200 focus:outline-none hover:bg-green-400 shadow-md rounded-sm py-0.5 my-2 cursor-pointer'
                             type='submit' value='Login' ref={loginRef} />
-                        <button className='flex-auto bg-green-200 focus:outline-none hover:bg-green-400 shadow-md rounded-sm py-0.5 my-2 ml-1'
-                            onClick={() => onSignup(username, password)} ref={signupRef}>
-                            Signup
-                        </button>
+                        <input className='flex-auto bg-green-200 focus:outline-none hover:bg-green-400 shadow-md rounded-sm py-0.5 my-2 ml-1'
+                            type='button' onClick={() => onSignup(username, password)} ref={signupRef} value='Signup' />
                     </div>
                 </form>
 
