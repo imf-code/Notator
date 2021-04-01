@@ -1,3 +1,4 @@
+import { TextareaAutosize } from '@material-ui/core';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { INote } from './Interfaces';
 
@@ -26,7 +27,7 @@ export default function Note(props: INoteProps) {
     const [editedText, setEditedText] = useState<string>(props.text);
     const [confirmDelete, setConfirmDelete] = useState<boolean>(false);
 
-    const inputRef = useRef<HTMLInputElement>(null);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
     const submitDisabledRef = useRef<boolean>(false);
     const deleteDisabledRef = useRef<boolean>(false);
 
@@ -34,34 +35,30 @@ export default function Note(props: INoteProps) {
      * Handle editing of text
      */
     function stopEdit() {
+        setEdit(false);
+
         if (submitDisabledRef.current) return;
         else if (!editedText) {
             setEditedText(props.text);
-            setEdit(false);
             return;
         }
         else if (editedText === props.text) {
-            setEdit(false);
             return;
         }
         else {
             (async () => {
-
                 submitDisabledRef.current = true;
 
                 await props.onEdit(props.id, editedText);
 
                 submitDisabledRef.current = false;
-
-                setEdit(false);
-                props.setSelected(props.id);
             })();
         }
     }
 
     const cancelEdit = useCallback(() => {
-        setEditedText(props.text);
         setEdit(false);
+        setEditedText(props.text);
         return;
     },
         [props.text]
@@ -90,7 +87,7 @@ export default function Note(props: INoteProps) {
     );
 
     return (
-        <form className='flex my-1 mr-1'
+        <form className='flex shadow rounded-md p-1 hover:bg-green-300 my-1 mr-1'
             onSubmit={e => {
                 e.preventDefault();
                 stopEdit();
@@ -98,16 +95,22 @@ export default function Note(props: INoteProps) {
 
             <div className={props.selected ? 'w-full bg-green-200 rounded-sm px-0.5' : 'w-full px-0.5'}>
                 {edit &&
-                    <input className='w-full align-middle px-1 -mt-1 -mx-1 focus:outline-none rounded-sm bg-green-200'
+                    <TextareaAutosize className='w-full align-middle border-none resize-none focus:outline-none rounded-sm bg-green-200'
                         ref={inputRef}
-                        type='text' value={editedText} onChange={event => setEditedText(event.target.value)} />}
+                        value={editedText} onChange={event => setEditedText(event.target.value)} 
+                        onKeyPress={e => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                stopEdit();
+                            }
+                        }}/>}
 
                 {!edit &&
                     (props.selected ?
-                        <div className=''>
+                        <div className='break-words'>
                             {props.text}
                         </div> :
-                        <p className='hover:bg-green-300 hover:rounded-sm' onClick={() => props.setSelected(props.id)}>
+                        <p className='break-words hover:bg-green-300 hover:rounded-sm' onClick={() => props.setSelected(props.id)}>
                             {props.text}
                         </p>)}
 
