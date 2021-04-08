@@ -16,14 +16,14 @@ interface INoteWithTopic extends INote {
     topicId: number;
 }
 
-/** Component for displaying and manipulating topics and the notes under each topic. */
+/** Component for displaying and manipulating topics and the notes under each topic */
 export default function MainView(props: ITopicsProps) {
 
     const [localNotes, setLocalNotes] = useState<Map<number, INoteWithTopic> | undefined>(undefined);
     const [localTopics, setLocalTopics] = useState<Map<number, string> | undefined>(undefined);
     const [selectedNote, setSelectedNote] = useState<number | undefined>(undefined);
 
-    // GET Topics and Notes from API and transform them into Map objects
+    // GET Topics and Notes and turn them into Map objects for internal use
     useEffect(() => {
         (async () => {
             const apiResponse = axios.get(`/api/topic/${props.subId}/with-notes`)
@@ -50,12 +50,10 @@ export default function MainView(props: ITopicsProps) {
             if (!topicsAndNotes) return;
 
             topicsAndNotes.forEach(topic => {
+                newTopics.set(topic.id, topic.name);
                 topic.notes.forEach(note => {
                     newNotes.set(note.id, { ...note, topicId: topic.id } as INoteWithTopic);
                 });
-            });
-            topicsAndNotes.forEach(topic => {
-                newTopics.set(topic.id, topic.name);
             });
 
             setLocalTopics(newTopics);
@@ -68,7 +66,7 @@ export default function MainView(props: ITopicsProps) {
 
     /**
      * Create a new topic under currently selected subject
-     * @param name Name for the new topic
+     * @param name Name of the new topic to be created
      */
     async function addTopic(name: string) {
         if (!localTopics) {
@@ -86,7 +84,7 @@ export default function MainView(props: ITopicsProps) {
             console.log(err);
             if (err.response && err.response.status === 400) alert(err.response.data);
             else alert('Something went wrong while attempting to create a new topic. Please try again later.');
-            return null;
+            return undefined;
         });
 
         if (newId) {
@@ -100,7 +98,7 @@ export default function MainView(props: ITopicsProps) {
 
     /**
      * Rename an existing topic
-     * @param topicId ID of topic to be modified
+     * @param topicId ID of the topic to be renamed
      * @param name New name for the topic
      */
     const renameTopic = useCallback(async (topicId: number, name: string) => {
@@ -118,17 +116,16 @@ export default function MainView(props: ITopicsProps) {
             console.log(err);
             if (err.response && err.response.status === 400) alert(err.response.data);
             else alert('Something went wrong while renaming the topic. Please try again later.');
-            return null;
+            return undefined;
         });
 
         const newTopics = new Map(localTopics);
         newTopics.set(topicId, name);
+        setLocalTopics(newTopics);
 
         const updatedTopic = await apiResponse;
-        if (updatedTopic === null) return;
-        else if (updatedTopic === topicId) {
-            setLocalTopics(newTopics);
-        }
+
+        if (!updatedTopic || (updatedTopic === topicId)) return;
         else alert('Something went wrong. Please try refreshing the page.');
     },
         [localTopics]
@@ -151,18 +148,16 @@ export default function MainView(props: ITopicsProps) {
             }).catch(err => {
                 console.log(err.response.data);
                 alert('Something went wrong while deleting the topic. Please try again later.');
-                return null;
+                return undefined;
             });
 
         const newTopics = new Map(localTopics);
         newTopics.delete(topicId);
 
         const deletedTopic = await apiResponse;
+        setLocalTopics(newTopics);
 
-        if (deletedTopic === null) return;
-        else if (deletedTopic === topicId) {
-            setLocalTopics(newTopics);
-        }
+        if (!deletedTopic || (deletedTopic === topicId)) return;
         else alert('Something went wrong. Please try refreshing the page.');
     },
         [localTopics]
@@ -229,7 +224,7 @@ export default function MainView(props: ITopicsProps) {
             console.log(err);
             if (err.response && err.response.status === 400) alert(err.response.data);
             else alert('Something went wrong while editing the note. Please try again later.');
-            return null;
+            return undefined;
         });
 
         const newNotes = new Map(localNotes);
@@ -242,13 +237,11 @@ export default function MainView(props: ITopicsProps) {
 
         const newNote = { ...oldNote, text: text } as INoteWithTopic;
         newNotes.set(noteId, newNote);
+        setLocalNotes(newNotes);
 
         const updatedNote = await apiResponse;
 
-        if (updatedNote === null) return;
-        else if (updatedNote === noteId) {
-            setLocalNotes(newNotes);
-        }
+        if (!updatedNote || (updatedNote === noteId)) return;
         else alert('Something went wrong. Please try refreshing the page.');
     },
         [localNotes]
@@ -327,20 +320,18 @@ export default function MainView(props: ITopicsProps) {
 
         const newNotes = new Map(localNotes);
         newNotes.delete(noteId);
+        setLocalNotes(newNotes);
 
         const deletedNote = await apiResponse;
 
-        if (deletedNote === null) return;
-        else if (deletedNote === noteId) {
-            setLocalNotes(newNotes);
-        }
+        if (!deletedNote || (deletedNote === noteId)) return;
         else alert('Something went wrong. Please try refreshing the page.');
     },
         [localNotes]
     );
 
     /**
-     * Select/deselect a note
+     * Select/unselect a note
      * @param noteId Note ID
      */
     const selectNote = useCallback((noteId: number) => {
@@ -351,7 +342,7 @@ export default function MainView(props: ITopicsProps) {
     );
 
     /**
-     * Array of Note components for each topic
+     * Map object with an array of Note components for each topic
      */
     const noteMap = useMemo(() => {
         if (!localNotes) return null;

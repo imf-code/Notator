@@ -39,6 +39,7 @@ export default function CreateTopic(props: ICreateTopicProps) {
             />
 
             <HeaderFormButton
+                ref={submitRef}
                 type='submit'
                 value='Create'
             />

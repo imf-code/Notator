@@ -29,9 +29,11 @@ function App() {
           alert('There was a problem connecting to the note server. The service may be down. Please try again later.');
         }
       })
-  }, []);
+  },
+    []
+  );
 
-  // GET user data on login and clear memory on logout.
+  // GET user data on login and clear local user data on logout
   useEffect(() => {
     if (loginStatus && !userData) {
       axios.get('/api/user')
@@ -64,14 +66,10 @@ function App() {
     <div className='flex flex-col h-screen bg-yellow-50 overflow-hidden'>
 
       {loginStatus ?
-
         <Header name={userData?.name}>
           <Subjects {...{ setCurrentSubject }} />
           <Logout {...{ setLoginStatus }} />
-        </Header>
-
-        :
-
+        </Header> :
         <LoginForm {...{ setLoginStatus }} />}
 
       {currentSubject && <MainView subId={currentSubject} />}
