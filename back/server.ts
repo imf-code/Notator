@@ -5,7 +5,6 @@ import https from 'https';
 
 import express from 'express';
 import ExpressSession from 'express-session';
-import bodyParser from 'body-parser';
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import { getConnection } from 'typeorm';
@@ -100,8 +99,8 @@ const httpsPort = 443;
     });
 
     // Middleware
-    app.use(bodyParser.json());
-    app.use(bodyParser.urlencoded({ extended: true }));
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
 
     await (async () => {
         if (!dbConnection) {
