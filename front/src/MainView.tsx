@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+
 import { INote, ITopic } from './Interfaces';
 import Topic from './Topic';
 import CreateTopic from './Topic.Create';
@@ -16,11 +18,16 @@ interface INoteWithTopic extends INote {
     topicId: number;
 }
 
+interface ITopicWithOrder {
+    name: string;
+    noteOrder: number[];
+}
+
 /** Component for displaying and manipulating topics and the notes under each topic */
 export default function MainView(props: ITopicsProps) {
 
     const [localNotes, setLocalNotes] = useState<Map<number, INoteWithTopic> | undefined>(undefined);
-    const [localTopics, setLocalTopics] = useState<Map<number, string> | undefined>(undefined);
+    const [localTopics, setLocalTopics] = useState<Map<number, ITopicWithOrder> | undefined>(undefined);
     const [selectedNote, setSelectedNote] = useState<number | undefined>(undefined);
 
     // GET Topics and Notes and turn them into Map objects for internal use
@@ -42,15 +49,15 @@ export default function MainView(props: ITopicsProps) {
                     return undefined;
                 });
 
-            const newNotes = new Map<number, INoteWithTopic>();
-            const newTopics = new Map<number, string>();
-
             const topicsAndNotes = await apiResponse;
 
             if (!topicsAndNotes) return;
 
+            const newTopics = new Map<number, ITopicWithOrder>();
+            const newNotes = new Map<number, INoteWithTopic>();
+
             topicsAndNotes.forEach(topic => {
-                newTopics.set(topic.id, topic.name);
+                newTopics.set(topic.id, { name: topic.name, noteOrder: JSON.parse(topic.noteOrder) as number[] });
                 topic.notes.forEach(note => {
                     newNotes.set(note.id, { ...note, topicId: topic.id } as INoteWithTopic);
                 });
@@ -89,7 +96,7 @@ export default function MainView(props: ITopicsProps) {
 
         if (newId) {
             const newTopics = new Map(localTopics);
-            newTopics.set(newId, name);
+            newTopics.set(newId, { name: name, noteOrder: [] });
 
             setLocalTopics(newTopics);
         }
@@ -119,8 +126,14 @@ export default function MainView(props: ITopicsProps) {
             return undefined;
         });
 
+        const oldTopic = localTopics.get(topicId);
+        if (!oldTopic) {
+            alert('Something went wrong. Please try refreshing the page.');
+            return;
+        }
+
         const newTopics = new Map(localTopics);
-        newTopics.set(topicId, name);
+        newTopics.set(topicId, { name: name, noteOrder: oldTopic.noteOrder });
         setLocalTopics(newTopics);
 
         const updatedTopic = await apiResponse;
@@ -169,7 +182,7 @@ export default function MainView(props: ITopicsProps) {
      * @param text Text for the new note
      */
     const addNote = useCallback(async (topicId: number, text: string) => {
-        if (!localNotes) {
+        if (!localNotes || !localTopics) {
             alert('Something went wrong. Please try refreshing the page.');
             return;
         }
@@ -187,21 +200,42 @@ export default function MainView(props: ITopicsProps) {
             return null;
         });
 
-        if (newId) {
-            const newNote: INoteWithTopic = {
-                id: newId,
-                text: text,
-                topicId: topicId
-            }
+        if (!newId) return;
 
-            const newNotes = new Map(localNotes);
-            newNotes.set(newId, newNote);
-
-            setLocalNotes(newNotes);
+        const newNote: INoteWithTopic = {
+            id: newId,
+            text: text,
+            topicId: topicId
         }
-        else return;
+
+        const newNotes = new Map(localNotes);
+        newNotes.set(newId, newNote);
+
+        const newTopics = new Map(localTopics);
+        const topic = newTopics.get(topicId);
+
+        if (!topic) {
+            alert('Something went wrong. Please try refreshing the page.');
+            return;
+        };
+
+        newTopics.set(topicId, { name: topic.name, noteOrder: [newId, ...topic.noteOrder] });
+
+        setLocalTopics(newTopics);
+        setLocalNotes(newNotes);
+
+        axios.patch(`/api/topic/order/${topicId}`, {
+            order: JSON.stringify([newId, ...topic.noteOrder])
+        }).then(resp => {
+            if (resp.status === 200) return;
+            else throw new Error();
+        }).catch(err => {
+            console.log(err);
+            if (err.response && err.response.status === 400) alert('Something went wrong. Please try refreshing the page.');
+            else alert('Something went wrong. The service may be down. Please try again later.');
+        })
     },
-        [localNotes]
+        [localNotes, localTopics]
     );
 
     /**
@@ -248,11 +282,43 @@ export default function MainView(props: ITopicsProps) {
     );
 
     /**
-     * **WIP**
-     * Move a note to another topic
-     * @param topicId ID of the topic to be move the note to.
-     * @param noteID ID of the note to be moved.
+     * Delete a note
+     * @param noteId ID of the note to be deleted
      */
+    const deleteNote = useCallback(async (noteId: number) => {
+        if (!localNotes) {
+            alert('Something went wrong. Please try refreshing the page.');
+            return;
+        }
+
+        const apiResponse = axios.delete(`/api/note/${noteId}`)
+            .then(resp => {
+                if (resp.status === 200) return resp.data.id as number;
+                else throw new Error();
+            }).catch(err => {
+                console.log(err.response.data);
+                alert('Something went wrong while deleting the note. Please try again later.');
+                return null;
+            });
+
+        const newNotes = new Map(localNotes);
+        newNotes.delete(noteId);
+        setLocalNotes(newNotes);
+
+        const deletedNote = await apiResponse;
+
+        if (!deletedNote || (deletedNote === noteId)) return;
+        else alert('Something went wrong. Please try refreshing the page.');
+    },
+        [localNotes]
+    );
+
+    /**
+    * **WIP**
+    * Move a note to another topic
+    * @param topicId ID of the topic to be move the note to.
+    * @param noteID ID of the note to be moved.
+    */
     // eslint-disable-next-line
     const moveNote = useCallback(async (topicId: number, noteId: number) => {
         if (!localNotes) {
@@ -299,35 +365,48 @@ export default function MainView(props: ITopicsProps) {
     );
 
     /**
-     * Delete a note
-     * @param noteId ID of the note to be deleted
+     * Reorder notes within a topic
      */
-    const deleteNote = useCallback(async (noteId: number) => {
-        if (!localNotes) {
+    const reorderNotes = useCallback((topicId: number, startInd: number, endInd: number) => {
+        if (!localTopics) return;
+
+        const topic = localTopics.get(topicId);
+
+        if (!topic) {
             alert('Something went wrong. Please try refreshing the page.');
             return;
         }
 
-        const apiResponse = axios.delete(`/api/note/${noteId}`)
-            .then(resp => {
-                if (resp.status === 200) return resp.data.id as number;
-                else throw new Error();
-            }).catch(err => {
-                console.log(err.response.data);
-                alert('Something went wrong while deleting the note. Please try again later.');
-                return null;
-            });
+        const newOrder = [...topic.noteOrder];
 
-        const newNotes = new Map(localNotes);
-        newNotes.delete(noteId);
-        setLocalNotes(newNotes);
+        const [movingNoteId] = newOrder.splice(startInd, 1);
+        newOrder.splice(endInd, 0, movingNoteId);
 
-        const deletedNote = await apiResponse;
-
-        if (!deletedNote || (deletedNote === noteId)) return;
-        else alert('Something went wrong. Please try refreshing the page.');
     },
-        [localNotes]
+        [localTopics]
+    );
+
+
+    const onDragEnd = useCallback((result: DropResult) => {
+        console.log('Foo');
+        return;
+
+        // const { source, destination } = result;
+
+        // if (!destination) return;
+
+        // const sTopicId = +source.droppableId;
+        // const dTopicId = +destination.droppableId;
+
+        // if (sTopicId === dTopicId) {
+        //     reorderNotes(sTopicId, source.index, destination.index);
+        //     return;
+        // }
+        // else {
+        //     return;
+        // }
+    },
+        []
     );
 
     /**
@@ -347,15 +426,29 @@ export default function MainView(props: ITopicsProps) {
     const noteMap = useMemo(() => {
         if (!localNotes) return null;
 
-        const elementMap = new Map<number, JSX.Element[]>();
+        const elementMap = new Map<number, JSX.Element>();
 
         localNotes.forEach(note => {
-            const newElement = <Note key={note.id} selected={note.id === selectedNote} setSelected={selectNote} onEdit={editNote} onDelete={deleteNote} {...note} />;
-            const existingNotes = elementMap.get(note.topicId);
+            const newElement =
+                <Note key={note.id}
+                    selected={note.id === selectedNote}
+                    setSelected={selectNote}
+                    onEdit={editNote}
+                    onDelete={deleteNote}
+                    {...note} />
 
-            if (existingNotes) existingNotes.push(newElement);
-            else elementMap.set(note.topicId, [newElement]);
+            elementMap.set(note.id, newElement);
         });
+
+        // localNotes.forEach(note => {
+        //     const newElement = (
+        //         <Note key={note.id} selected={note.id === selectedNote} setSelected={selectNote} onEdit={editNote} onDelete={deleteNote} {...note} />
+        //     );
+        //     const existingNotes = elementMap.get(note.topicId);
+
+        //     if (existingNotes) existingNotes.push(newElement);
+        //     else elementMap.set(note.topicId, [newElement]);
+        // });
 
         return elementMap;
     },
@@ -366,24 +459,70 @@ export default function MainView(props: ITopicsProps) {
     const topicAndNoteArray = useMemo(() => {
         if (!localTopics || !noteMap) return null;
 
-        let topicArray: JSX.Element[] = [];
+        const topicArray: JSX.Element[] = [];
 
-        localTopics.forEach((topicName, topicId) => {
-            const noteElements = noteMap.get(topicId);
+        localTopics.forEach((topic, topicId) => {
+            const noteArray: JSX.Element[] = [];
+
+            topic.noteOrder.forEach((noteId, ind) => {
+                noteArray.push(
+                    <Draggable
+                        key={noteId}
+                        draggableId={String(noteId)}
+                        index={ind} >
+                        {(provided, snapshot) => (
+                            <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}>
+                                {noteMap.get(noteId)}
+                            </div>
+                        )}
+                    </Draggable>
+                );
+            });
 
             topicArray.push(
-                <Topic key={topicId}
-                    id={topicId}
-                    name={topicName}
-                    onEdit={renameTopic}
-                    onDelete={deleteTopic} >
-                    <CreateNote key={topicId} addNote={addNote} topicId={topicId} />
-                    <div className='overflow-y-scroll h-full bar-sm'>
-                        {noteElements}
-                    </div>
-                </Topic>
+                <Droppable key={topicId} droppableId={String(topicId)}>
+                    {(provided, snapshot) => (
+                        <div ref={provided.innerRef} {...provided.droppableProps}>
+                            <Topic key={topicId}
+                                id={topicId}
+                                name={topic.name}
+                                onEdit={renameTopic}
+                                onDelete={deleteTopic} >
+                                <CreateNote key={topicId} addNote={addNote} topicId={topicId} />
+                                <div className='overflow-y-scroll h-full bar-sm'>
+                                    {noteArray}
+                                </div>
+                            </Topic>
+                        </div>
+                    )}
+                </Droppable>
             );
         });
+
+        // localTopics.forEach((topic, topicId) => {
+        //     const noteElements = noteMap.get(topicId);
+
+        //     topicArray.push(
+        //         <Droppable key={topicId} droppableId={String(topicId)}>
+        //             {(provided, snapshot) => (
+        //                 <div ref={provided.innerRef} {...provided.droppableProps}>
+        //                     <Topic key={topicId}
+        //                         id={topicId}
+        //                         name={topic.name}
+        //                         onEdit={renameTopic}
+        //                         onDelete={deleteTopic} >
+        //                         <CreateNote key={topicId} addNote={addNote} topicId={topicId} />
+        //                         <div className='overflow-y-scroll h-full bar-sm'>
+        //                             {noteElements}
+        //                         </div>
+        //                     </Topic>
+        //                 </div>
+        //             )}
+        //         </Droppable>
+        //     );
+        // });
 
         return topicArray;
     },
@@ -391,13 +530,15 @@ export default function MainView(props: ITopicsProps) {
     );
 
     return (
-        <div className='flex flex-col flex-grow w-full bg-yellow-50 overflow-hidden'>
-            <div className='mx-4 mt-2'>
-                <CreateTopic addTopic={addTopic} />
+        <DragDropContext onDragEnd={onDragEnd}>
+            <div className='flex flex-col flex-grow w-full bg-yellow-50 overflow-hidden'>
+                <div className='mx-4 mt-2'>
+                    <CreateTopic addTopic={addTopic} />
+                </div>
+                <div className='flex h-full flex-nowrap overflow-x-scroll flex-row px-2 pb-2'>
+                    {topicAndNoteArray}
+                </div>
             </div>
-            <div className='flex h-full flex-nowrap overflow-x-scroll flex-row px-2 pb-2'>
-                {topicAndNoteArray}
-            </div>
-        </div>
+        </DragDropContext>
     );
 }

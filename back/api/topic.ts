@@ -80,7 +80,7 @@ export default (): Router => {
             res.sendStatus(500);
             return;
         }
-        if (!req.body.order) {
+        if (req.body.order === undefined) {
             res.status(400).send('New order required.');
             return;
         }

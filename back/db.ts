@@ -269,7 +269,7 @@ export default class Database {
                 client: userId,
                 subject: subId,
                 name: topic,
-                noteOrder: ''
+                noteOrder: JSON.stringify([])
             }])
             .execute();
     }
