@@ -75,7 +75,7 @@ export default function MainView(props: ITopicsProps) {
      * Create a new topic under currently selected subject
      * @param name Name of the new topic to be created
      */
-    async function addTopic(name: string) {
+    async function createTopic(name: string) {
         if (!localTopics) {
             alert('Something went wrong. Please try refreshing the page.');
             return;
@@ -181,7 +181,7 @@ export default function MainView(props: ITopicsProps) {
      * @param topicId ID of the parent topic
      * @param text Text for the new note
      */
-    const addNote = useCallback(async (topicId: number, text: string) => {
+    const createNote = useCallback(async (topicId: number, text: string) => {
         if (!localNotes || !localTopics) {
             alert('Something went wrong. Please try refreshing the page.');
             return;
@@ -302,7 +302,7 @@ export default function MainView(props: ITopicsProps) {
             });
 
         const newNotes = new Map(localNotes);
-        const removed = localNotes.get(noteId);
+        const removed = newNotes.get(noteId);
         newNotes.delete(noteId);
 
         const newTopics = new Map(localTopics);
@@ -399,7 +399,7 @@ export default function MainView(props: ITopicsProps) {
     /**
      * Reorder notes within a topic
      */
-    const reorderNotes = useCallback((topicId: number, startInd: number, endInd: number) => {
+    const reorderNotes = useCallback(async (topicId: number, startInd: number, endInd: number) => {
         if (!localTopics) return;
 
         const topic = localTopics.get(topicId);
@@ -414,31 +414,44 @@ export default function MainView(props: ITopicsProps) {
         const [movingNoteId] = newOrder.splice(startInd, 1);
         newOrder.splice(endInd, 0, movingNoteId);
 
+        const newTopics = new Map(localTopics);
+
+        newTopics.set(topicId, { name: topic.name, noteOrder: newOrder });
+
+        setLocalTopics(newTopics);
+
+        axios.patch(`/api/topic/order/${topicId}`, {
+            order: JSON.stringify(newOrder)
+        }).then(resp => {
+            if (resp.status === 200) return;
+            else throw new Error();
+        }).catch(err => {
+            console.log(err);
+            if (err.response && err.response.status === 400) alert('Something went wrong. Please try refreshing the page.');
+            else alert('Something went wrong. The service may be down. Please try again later.');
+        });
     },
         [localTopics]
     );
 
-
     const onDragEnd = useCallback((result: DropResult) => {
-        console.log('Foo');
-        return;
 
-        // const { source, destination } = result;
+        const { source, destination } = result;
 
-        // if (!destination) return;
+        if (!destination) return;
 
-        // const sTopicId = +source.droppableId;
-        // const dTopicId = +destination.droppableId;
+        const sTopicId = +source.droppableId;
+        const dTopicId = +destination.droppableId;
 
-        // if (sTopicId === dTopicId) {
-        //     reorderNotes(sTopicId, source.index, destination.index);
-        //     return;
-        // }
+        if (sTopicId === dTopicId) {
+            reorderNotes(sTopicId, source.index, destination.index);
+            return;
+        }
         // else {
         //     return;
         // }
     },
-        []
+        [reorderNotes]
     );
 
     /**
@@ -513,7 +526,7 @@ export default function MainView(props: ITopicsProps) {
                                 name={topic.name}
                                 onEdit={renameTopic}
                                 onDelete={deleteTopic} >
-                                <CreateNote key={topicId} addNote={addNote} topicId={topicId} />
+                                <CreateNote key={topicId} addNote={createNote} topicId={topicId} />
                                 <div className='overflow-y-scroll h-full bar-sm'>
                                     {noteArray}
                                     {provided.placeholder}
@@ -527,14 +540,14 @@ export default function MainView(props: ITopicsProps) {
 
         return topicArray;
     },
-        [localTopics, noteMap, deleteTopic, renameTopic, addNote]
+        [localTopics, noteMap, deleteTopic, renameTopic, createNote]
     );
 
     return (
         <DragDropContext onDragEnd={onDragEnd}>
             <div className='flex flex-col flex-grow w-full bg-yellow-50 overflow-hidden'>
                 <div className='mx-4 mt-2'>
-                    <CreateTopic addTopic={addTopic} />
+                    <CreateTopic addTopic={createTopic} />
                 </div>
                 <div className='flex h-full flex-nowrap overflow-x-scroll flex-row px-2 pb-2'>
                     {topicAndNoteArray}
