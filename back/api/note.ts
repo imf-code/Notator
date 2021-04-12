@@ -28,6 +28,7 @@ export default (): Router => {
         });
     });
 
+    // Create new note
     router.post('/', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
@@ -63,6 +64,7 @@ export default (): Router => {
         });
     });
 
+    // Update note text
     router.patch('/:noteId', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
@@ -96,6 +98,7 @@ export default (): Router => {
         });
     });
 
+    // Move note to another topic
     router.patch('/move', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
@@ -134,6 +137,7 @@ export default (): Router => {
         });
     });
 
+    // Delete note
     router.delete('/:noteId', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);

@@ -6,6 +6,7 @@ export default (): Router => {
     const router = Router();
     const db = new Database;
 
+    // Signup
     router.post('/signup', (req, res) => {
         if (!req.body.username || !req.body.password) {
             res.status(400).send('Both username and password required.');
@@ -50,6 +51,7 @@ export default (): Router => {
         }
     )
 
+    // Logout
     router.post('/logout', (req, res) => {
         if (!req.session.passport) {
             res.status(400).send('Not logged in.');

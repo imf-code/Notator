@@ -5,6 +5,7 @@ export default (): Router => {
     const router = Router();
     const db = new Database;
 
+    // Get a topic and all notes under it
     router.get('/:subId/with-notes', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
@@ -37,6 +38,7 @@ export default (): Router => {
         });
     });
 
+    // Create a new topic
     router.post('/', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
@@ -72,6 +74,7 @@ export default (): Router => {
         });
     });
 
+    // Reorder notes under a topic
     router.patch('/order/:topicId', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
@@ -105,6 +108,7 @@ export default (): Router => {
         });
     });
 
+    // Rename a topic
     router.patch('/:topicId', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
@@ -138,6 +142,7 @@ export default (): Router => {
         });
     });
 
+    // Delete a topic
     router.delete('/:topicId', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
