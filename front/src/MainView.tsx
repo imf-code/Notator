@@ -233,7 +233,7 @@ export default function MainView(props: ITopicsProps) {
             console.log(err);
             if (err.response && err.response.status === 400) alert('Something went wrong. Please try refreshing the page.');
             else alert('Something went wrong. The service may be down. Please try again later.');
-        })
+        });
     },
         [localNotes, localTopics]
     );
@@ -286,7 +286,7 @@ export default function MainView(props: ITopicsProps) {
      * @param noteId ID of the note to be deleted
      */
     const deleteNote = useCallback(async (noteId: number) => {
-        if (!localNotes) {
+        if (!localNotes || !localTopics) {
             alert('Something went wrong. Please try refreshing the page.');
             return;
         }
@@ -302,15 +302,47 @@ export default function MainView(props: ITopicsProps) {
             });
 
         const newNotes = new Map(localNotes);
+        const removed = localNotes.get(noteId);
         newNotes.delete(noteId);
+
+        const newTopics = new Map(localTopics);
+
+        if (!removed) {
+            alert('Something went wrong. Please try refreshing the page.');
+            return;
+        };
+
+        const topic = newTopics.get(removed.topicId);
+
+        if (!topic) {
+            alert('Something went wrong. Please try refreshing the page.');
+            return;
+        };
+
+        const newOrder = topic.noteOrder.filter(note => note !== noteId);
+        newTopics.set(removed.topicId, { name: topic.name, noteOrder: newOrder });
+
+        setLocalTopics(newTopics);
         setLocalNotes(newNotes);
 
         const deletedNote = await apiResponse;
 
-        if (!deletedNote || (deletedNote === noteId)) return;
+        if (!deletedNote) return;
+        else if (deletedNote === noteId) {
+            axios.patch(`/api/topic/order/${removed.topicId}`, {
+                order: JSON.stringify(newOrder)
+            }).then(resp => {
+                if (resp.status === 200) return;
+                else throw new Error();
+            }).catch(err => {
+                console.log(err);
+                if (err.response && err.response.status === 400) alert('Something went wrong. Please try refreshing the page.');
+                else alert('Something went wrong. The service may be down. Please try again later.');
+            });
+        }
         else alert('Something went wrong. Please try refreshing the page.');
     },
-        [localNotes]
+        [localNotes, localTopics]
     );
 
     /**
@@ -440,16 +472,6 @@ export default function MainView(props: ITopicsProps) {
             elementMap.set(note.id, newElement);
         });
 
-        // localNotes.forEach(note => {
-        //     const newElement = (
-        //         <Note key={note.id} selected={note.id === selectedNote} setSelected={selectNote} onEdit={editNote} onDelete={deleteNote} {...note} />
-        //     );
-        //     const existingNotes = elementMap.get(note.topicId);
-
-        //     if (existingNotes) existingNotes.push(newElement);
-        //     else elementMap.set(note.topicId, [newElement]);
-        // });
-
         return elementMap;
     },
         [localNotes, selectedNote, selectNote, editNote, deleteNote]
@@ -473,7 +495,8 @@ export default function MainView(props: ITopicsProps) {
                         {(provided, snapshot) => (
                             <div
                                 ref={provided.innerRef}
-                                {...provided.draggableProps}>
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}>
                                 {noteMap.get(noteId)}
                             </div>
                         )}
@@ -493,6 +516,7 @@ export default function MainView(props: ITopicsProps) {
                                 <CreateNote key={topicId} addNote={addNote} topicId={topicId} />
                                 <div className='overflow-y-scroll h-full bar-sm'>
                                     {noteArray}
+                                    {provided.placeholder}
                                 </div>
                             </Topic>
                         </div>
@@ -500,29 +524,6 @@ export default function MainView(props: ITopicsProps) {
                 </Droppable>
             );
         });
-
-        // localTopics.forEach((topic, topicId) => {
-        //     const noteElements = noteMap.get(topicId);
-
-        //     topicArray.push(
-        //         <Droppable key={topicId} droppableId={String(topicId)}>
-        //             {(provided, snapshot) => (
-        //                 <div ref={provided.innerRef} {...provided.droppableProps}>
-        //                     <Topic key={topicId}
-        //                         id={topicId}
-        //                         name={topic.name}
-        //                         onEdit={renameTopic}
-        //                         onDelete={deleteTopic} >
-        //                         <CreateNote key={topicId} addNote={addNote} topicId={topicId} />
-        //                         <div className='overflow-y-scroll h-full bar-sm'>
-        //                             {noteElements}
-        //                         </div>
-        //                     </Topic>
-        //                 </div>
-        //             )}
-        //         </Droppable>
-        //     );
-        // });
 
         return topicArray;
     },
