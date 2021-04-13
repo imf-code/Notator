@@ -431,7 +431,10 @@ export default function MainView(props: ITopicsProps) {
     );
 
     /**
-     * Reorder notes within a topic
+     * Moves a note within a topic
+     * @param topicId ID of the topic to be reorganized
+     * @param startInd Array index of the note to be moved
+     * @param endInd Destination array index
      */
     const reorderNotes = useCallback(async (topicId: number, startInd: number, endInd: number) => {
         if (!localTopics) return;
@@ -443,19 +446,19 @@ export default function MainView(props: ITopicsProps) {
             return;
         }
 
-        const newOrder = [...topic.noteOrder];
+        const newNoteOrder = [...topic.noteOrder];
 
-        const [movingNoteId] = newOrder.splice(startInd, 1);
-        newOrder.splice(endInd, 0, movingNoteId);
+        const [movingNoteId] = newNoteOrder.splice(startInd, 1);
+        newNoteOrder.splice(endInd, 0, movingNoteId);
 
         const newTopics = new Map(localTopics);
 
-        newTopics.set(topicId, { name: topic.name, noteOrder: newOrder });
+        newTopics.set(topicId, { name: topic.name, noteOrder: newNoteOrder });
 
         setLocalTopics(newTopics);
 
         axios.patch(`/api/topic/order/${topicId}`, {
-            order: JSON.stringify(newOrder)
+            order: JSON.stringify(newNoteOrder)
         }).then(resp => {
             if (resp.status === 200) return;
             else throw new Error();
@@ -468,27 +471,59 @@ export default function MainView(props: ITopicsProps) {
         [localTopics]
     );
 
+    /**
+     * Moves a topic
+     * @param startInd Array index of the topic to be moved
+     * @param endInd Destination array index
+     */
+    const reorderTopics = useCallback(async (startInd: number, endInd: number) => {
+        if (!topicOrder) return;
+
+        const newTopicOrder = [...topicOrder];
+
+        const [movingNoteId] = newTopicOrder.splice(startInd, 1);
+        newTopicOrder.splice(endInd, 0, movingNoteId);
+
+        setTopicOrder(newTopicOrder);
+
+        axios.patch(`/api/subject/order/${props.subId}`, {
+            order: JSON.stringify(newTopicOrder)
+        }).then(resp => {
+            if (resp.status === 200) return;
+            else throw new Error();
+        }).catch(err => {
+            console.log(err);
+            if (err.response && err.response.status === 400) alert('Something went wrong. Please try refreshing the page.');
+            else alert('Something went wrong. The service may be down. Please try again later.');
+        });
+    },
+        [topicOrder]
+    );
+
+    /** Drag end handler */
     const onDragEnd = useCallback((result: DropResult) => {
 
         const { source, destination, type } = result;
 
         if (!destination) return;
 
-        const sId = +source.droppableId;
-        const dId = +destination.droppableId;
+        switch (type) {
+            case 'NOTE':
+                const sTopicId = +source.droppableId;
+                const dTopicId = +destination.droppableId;
 
-        if (type === 'NOTE' && sId === dId) {
-            reorderNotes(sId, source.index, destination.index);
-            return;
+                if (sTopicId === dTopicId) {
+                    reorderNotes(sTopicId, source.index, destination.index);
+                    return;
+                }
+                break;
+            case 'TOPIC':
+                reorderTopics(source.index, destination.index);
+                break;
+            default: return;
         }
-        else if (type === 'TOPIC' && sId) {
-            console.log('foo');
-        }
-        // else {
-        //     return;
-        // }
     },
-        [reorderNotes]
+        [reorderNotes, reorderTopics]
     );
 
     /**
@@ -598,7 +633,7 @@ export default function MainView(props: ITopicsProps) {
                     draggableId={String(topicId)}
                     index={ind} >
                     {(provided, snapshot) => (
-                        <div className='h-full'
+                        <div className='flex flex-none flex-col overflow-hidden border-green-200 border-r4 w-80 m-2 box-border bg-green-200 rounded-md shadow-md'
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}>
