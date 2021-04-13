@@ -380,20 +380,40 @@ export default function MainView(props: ITopicsProps) {
     );
 
     /**
-    * **WIP**
     * Move a note to another topic
-    * @param topicId ID of the topic to be move the note to.
-    * @param noteID ID of the note to be moved.
+    * @param sTopicId ID of source topic
+    * @param dTopicId ID of destination topic
+    * @param startInd Array index of movind note
+    * @param endInd Destination array index
     */
-    // eslint-disable-next-line
-    const moveNote = useCallback(async (topicId: number, noteId: number) => {
-        if (!localNotes) {
+    const moveNote = useCallback(async (sTopicId: number, dTopicId: number, startInd: number, endInd: number) => {
+        if (!localNotes || !localTopics) {
             alert('Something went wrong. Please try refreshing the page.');
             return;
         }
 
-        const apiResponse = axios.patch(`/api/note/move/`, {
-            topicId: topicId,
+        const newLocalTopics = new Map(localTopics);
+        const newLocalNotes = new Map(localNotes);
+
+        const sTopic = newLocalTopics.get(sTopicId);
+        const dTopic = newLocalTopics.get(dTopicId);
+
+        if (!sTopic || !dTopic) {
+            alert('Something went wrong. Please try refreshing the page.');
+            return;
+        }
+
+        const sNewNoteOrder = [...sTopic.noteOrder];
+        const dNewNoteOrder = [...dTopic.noteOrder];
+
+        const [noteId] = sNewNoteOrder.splice(startInd, 1);
+        dNewNoteOrder.splice(endInd, 0, noteId);
+
+        newLocalTopics.set(sTopicId, { ...sTopic, noteOrder: sNewNoteOrder });
+        newLocalTopics.set(dTopicId, { ...dTopic, noteOrder: dNewNoteOrder });
+
+        const apiResponse = axios.patch(`/api/note/move/${noteId}`, {
+            topicId: dTopicId,
             noteId: noteId
         }).then(resp => {
             if (resp.status === 200) return resp.data.id as number;
@@ -402,32 +422,53 @@ export default function MainView(props: ITopicsProps) {
             console.log(err);
             if (err.response && err.response.status === 400) alert(err.response.data);
             else alert('Something went wrong while editing the note. Please try again later.');
-            return null;
+            return;
         });
 
-        const newNotes = new Map(localNotes);
-        const oldNote = newNotes.get(noteId);
+        axios.patch(`/api/topic/order/${sTopicId}`, {
+            order: JSON.stringify(sNewNoteOrder)
+        }).then(resp => {
+            if (resp.status === 200) return;
+            else throw new Error();
+        }).catch(err => {
+            console.log(err);
+            if (err.response && err.response.status === 400) alert('Something went wrong. Please try refreshing the page.');
+            else alert('Something went wrong. The service may be down. Please try again later.');
+        });
+
+        axios.patch(`/api/topic/order/${dTopicId}`, {
+            order: JSON.stringify(dNewNoteOrder)
+        }).then(resp => {
+            if (resp.status === 200) return;
+            else throw new Error();
+        }).catch(err => {
+            console.log(err);
+            if (err.response && err.response.status === 400) alert('Something went wrong. Please try refreshing the page.');
+            else alert('Something went wrong. The service may be down. Please try again later.');
+        });
+
+        const oldNote = newLocalNotes.get(noteId);
 
         if (!oldNote) {
             alert('Something went wrong. Please try refreshing the page.');
             return;
         }
 
-        const newNote = { ...oldNote, topicId: topicId } as INoteWithTopic;
-        newNotes.set(noteId, newNote);
+        const newNote = { ...oldNote, topicId: dTopicId } as INoteWithTopic;
+        newLocalNotes.set(noteId, newNote);
+
+        setLocalNotes(newLocalNotes);
+        setLocalTopics(newLocalTopics);
 
         const movedNote = await apiResponse;
 
-        if (movedNote === null) return;
-        else if (movedNote === noteId) {
-            setLocalNotes(newNotes);
-        }
+        if (!movedNote || movedNote === noteId) return;
         else {
             alert('Something went wrong. Please try refreshing the page.');
             return;
         }
     },
-        [localNotes]
+        [localNotes, localTopics]
     );
 
     /**
@@ -497,7 +538,7 @@ export default function MainView(props: ITopicsProps) {
             else alert('Something went wrong. The service may be down. Please try again later.');
         });
     },
-        [topicOrder]
+        [topicOrder, props.subId]
     );
 
     /** Drag end handler */
@@ -516,6 +557,7 @@ export default function MainView(props: ITopicsProps) {
                     reorderNotes(sTopicId, source.index, destination.index);
                     return;
                 }
+                else moveNote(sTopicId, dTopicId, source.index, destination.index);
                 break;
             case 'TOPIC':
                 reorderTopics(source.index, destination.index);
@@ -523,7 +565,7 @@ export default function MainView(props: ITopicsProps) {
             default: return;
         }
     },
-        [reorderNotes, reorderTopics]
+        [reorderNotes, reorderTopics, moveNote]
     );
 
     /**
