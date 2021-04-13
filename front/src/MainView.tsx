@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 
-import { INote, ITopic } from './Interfaces';
+import { INote, ISubject, ITopic } from './Interfaces';
 import Topic from './Topic';
 import CreateTopic from './Topic.Create';
 import Note from './Note';
@@ -29,11 +29,12 @@ export default function MainView(props: ITopicsProps) {
     const [localNotes, setLocalNotes] = useState<Map<number, INoteWithTopic> | undefined>(undefined);
     const [localTopics, setLocalTopics] = useState<Map<number, ITopicWithOrder> | undefined>(undefined);
     const [selectedNote, setSelectedNote] = useState<number | undefined>(undefined);
+    const [topicOrder, setTopicOrder] = useState<number[] | undefined>(undefined);
 
     // GET Topics and Notes and turn them into Map objects for internal use
     useEffect(() => {
         (async () => {
-            const apiResponse = axios.get(`/api/topic/${props.subId}/with-notes`)
+            const apiResponse = axios.get(`/api/subject/${props.subId}/with-notes`)
                 .then(resp => {
                     if (resp.status !== 200) {
                         console.log(resp);
@@ -41,7 +42,7 @@ export default function MainView(props: ITopicsProps) {
                         return undefined;
                     }
                     else {
-                        return resp.data as ITopic[];
+                        return resp.data as ISubject;
                     }
                 }).catch(err => {
                     console.log(err.response.data);
@@ -49,8 +50,10 @@ export default function MainView(props: ITopicsProps) {
                     return undefined;
                 });
 
-            const topicsAndNotes = await apiResponse;
+            const subject: ISubject | undefined = await apiResponse;
+            if (!subject) return;
 
+            const topicsAndNotes: ITopic[] | undefined = subject.topics;
             if (!topicsAndNotes) return;
 
             const newTopics = new Map<number, ITopicWithOrder>();
@@ -63,8 +66,11 @@ export default function MainView(props: ITopicsProps) {
                 });
             });
 
+            const newTopicOrder = JSON.parse(subject.topicOrder) as number[];
+
+            setTopicOrder(newTopicOrder);
             setLocalTopics(newTopics);
-            setLocalNotes(newNotes);;
+            setLocalNotes(newNotes);
 
         })();
     },
@@ -76,7 +82,7 @@ export default function MainView(props: ITopicsProps) {
      * @param name Name of the new topic to be created
      */
     async function createTopic(name: string) {
-        if (!localTopics) {
+        if (!localTopics || !topicOrder) {
             alert('Something went wrong. Please try refreshing the page.');
             return;
         }
@@ -94,13 +100,24 @@ export default function MainView(props: ITopicsProps) {
             return undefined;
         });
 
-        if (newId) {
-            const newTopics = new Map(localTopics);
-            newTopics.set(newId, { name: name, noteOrder: [] });
+        if (!newId) return;
 
-            setLocalTopics(newTopics);
-        }
-        else return;
+        const newTopics = new Map(localTopics);
+        newTopics.set(newId, { name: name, noteOrder: [] });
+
+        setTopicOrder([newId, ...topicOrder]);
+        setLocalTopics(newTopics);
+
+        axios.patch(`/api/subject/order/${props.subId}`, {
+            order: JSON.stringify([newId, ...topicOrder])
+        }).then(resp => {
+            if (resp.status === 200) return;
+            else throw new Error();
+        }).catch(err => {
+            console.log(err);
+            if (err.response && err.response.status === 400) alert('Something went wrong. Please try refreshing the page.');
+            else alert('Something went wrong. The service may be down. Please try again later.');
+        });
     }
 
     /**
@@ -149,7 +166,7 @@ export default function MainView(props: ITopicsProps) {
      * @param topicId ID of the topic to be deleted
      */
     const deleteTopic = useCallback(async (topicId: number) => {
-        if (!localTopics) {
+        if (!localTopics || !topicOrder) {
             alert('Something went wrong. Please try refreshing the page.');
             return;
         }
@@ -170,10 +187,27 @@ export default function MainView(props: ITopicsProps) {
         const deletedTopic = await apiResponse;
         setLocalTopics(newTopics);
 
-        if (!deletedTopic || (deletedTopic === topicId)) return;
+        if (!deletedTopic) return;
+        else if (deletedTopic === topicId) {
+
+            const newTopicOrder = topicOrder.filter(topic => topic !== topicId);
+
+            setTopicOrder(newTopicOrder);
+
+            axios.patch(`/api/subject/order/${props.subId}`, {
+                order: JSON.stringify(newTopicOrder)
+            }).then(resp => {
+                if (resp.status === 200) return;
+                else throw new Error();
+            }).catch(err => {
+                console.log(err);
+                if (err.response && err.response.status === 400) alert('Something went wrong. Please try refreshing the page.');
+                else alert('Something went wrong. The service may be down. Please try again later.');
+            });
+        }
         else alert('Something went wrong. Please try refreshing the page.');
     },
-        [localTopics]
+        [localTopics, props.subId, topicOrder]
     );
 
     /**
@@ -436,16 +470,19 @@ export default function MainView(props: ITopicsProps) {
 
     const onDragEnd = useCallback((result: DropResult) => {
 
-        const { source, destination } = result;
+        const { source, destination, type } = result;
 
         if (!destination) return;
 
-        const sTopicId = +source.droppableId;
-        const dTopicId = +destination.droppableId;
+        const sId = +source.droppableId;
+        const dId = +destination.droppableId;
 
-        if (sTopicId === dTopicId) {
-            reorderNotes(sTopicId, source.index, destination.index);
+        if (type === 'NOTE' && sId === dId) {
+            reorderNotes(sId, source.index, destination.index);
             return;
+        }
+        else if (type === 'TOPIC' && sId) {
+            console.log('foo');
         }
         // else {
         //     return;
@@ -466,7 +503,7 @@ export default function MainView(props: ITopicsProps) {
     );
 
     /**
-     * Map object with an array of Note components for each topic
+     * A Map object with a Note component for each note
      */
     const noteMap = useMemo(() => {
         if (!localNotes) return null;
@@ -490,17 +527,25 @@ export default function MainView(props: ITopicsProps) {
         [localNotes, selectedNote, selectNote, editNote, deleteNote]
     );
 
-    /** Array of Topic components with their Note children */
+    /** Array of Topic components with their Note children and added Draggable/Droppable functionality*/
     const topicAndNoteArray = useMemo(() => {
-        if (!localTopics || !noteMap) return null;
+        if (!localTopics || !noteMap || !topicOrder) return null;
 
-        const topicArray: JSX.Element[] = [];
+        /**
+         * A Map object with a Topic component for each topic, 
+         * incl. Note children
+         */
+        const topicMap = new Map<number, JSX.Element>();
 
+        // Iterate through each topic
         localTopics.forEach((topic, topicId) => {
-            const noteArray: JSX.Element[] = [];
 
-            topic.noteOrder.forEach((noteId, ind) => {
-                noteArray.push(
+            /**
+             * Array of Note components with added Draggable functionality,
+             * in correct order
+             */
+            const orderedNoteArray: JSX.Element[] = topic.noteOrder.map((noteId, ind) => {
+                return (
                     <Draggable
                         key={noteId}
                         draggableId={String(noteId)}
@@ -511,47 +556,83 @@ export default function MainView(props: ITopicsProps) {
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}>
                                 {noteMap.get(noteId)}
-                            </div>
-                        )}
+                            </div>)}
                     </Draggable>
                 );
             });
 
-            topicArray.push(
-                <Droppable key={topicId} droppableId={String(topicId)}>
-                    {(provided, snapshot) => (
-                        <div ref={provided.innerRef} {...provided.droppableProps}>
-                            <Topic key={topicId}
-                                id={topicId}
-                                name={topic.name}
-                                onEdit={renameTopic}
-                                onDelete={deleteTopic} >
-                                <CreateNote key={topicId} addNote={createNote} topicId={topicId} />
-                                <div className='overflow-y-scroll h-full bar-sm'>
-                                    {noteArray}
-                                    {provided.placeholder}
-                                </div>
-                            </Topic>
-                        </div>
-                    )}
-                </Droppable>
+            // Set a Topic component in Map with some added Droppable functionality for note
+            topicMap.set(topicId,
+                <Topic key={topicId}
+                    id={topicId}
+                    name={topic.name}
+                    onEdit={renameTopic}
+                    onDelete={deleteTopic} >
+
+                    <CreateNote key={topicId} addNote={createNote} topicId={topicId} />
+
+                    <Droppable key={'drop' + topicId} droppableId={String(topicId)} type='NOTE'>
+                        {(provided, snapshot) => (
+
+                            <div className='overflow-y-scroll h-full bar-sm'
+                                ref={provided.innerRef}
+                                {...provided.droppableProps} >
+
+                                {orderedNoteArray}
+                                {provided.placeholder}
+                            </div>)}
+                    </Droppable>
+
+                </Topic>
             );
+        });
+
+        /**
+         * Array of Topic components with Note children,
+         * incl. added Draggable functionality
+         */
+        const topicArray: JSX.Element[] = topicOrder.map((topicId, ind) => {
+            return (
+                <Draggable
+                    key={'drag' + topicId}
+                    draggableId={String(topicId)}
+                    index={ind} >
+                    {(provided, snapshot) => (
+                        <div className='h-full'
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}>
+                            {topicMap.get(topicId)}
+                        </div>)}
+                </Draggable>
+            )
         });
 
         return topicArray;
     },
-        [localTopics, noteMap, deleteTopic, renameTopic, createNote]
+        [localTopics, topicOrder, noteMap, deleteTopic, renameTopic, createNote]
     );
 
     return (
         <DragDropContext onDragEnd={onDragEnd}>
             <div className='flex flex-col flex-grow w-full bg-yellow-50 overflow-hidden'>
+
                 <div className='mx-4 mt-2'>
                     <CreateTopic addTopic={createTopic} />
                 </div>
-                <div className='flex h-full flex-nowrap overflow-x-scroll flex-row px-2 pb-2'>
-                    {topicAndNoteArray}
-                </div>
+
+                <Droppable key='topics' droppableId='topics' type='TOPIC' direction='horizontal'>
+                    {(provided, snapshot) => (
+                        <div className='flex h-full flex-nowrap overflow-x-scroll flex-row px-2 pb-2'
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}>
+
+                            {topicAndNoteArray}
+                            {provided.placeholder}
+
+                        </div>)}
+                </Droppable>
+
             </div>
         </DragDropContext>
     );

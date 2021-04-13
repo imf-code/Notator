@@ -32,6 +32,39 @@ export default (): Router => {
         });
     });
 
+    // Get a all topics and notes under a subject
+    router.get('/:subId/with-notes', (req: Request, res) => {
+        if (!req.id) {
+            res.sendStatus(500);
+            return;
+        }
+
+        const userId = req.id;
+        const subId = Number(req.params.subId);
+
+        if (Number.isNaN(subId)) {
+            res.status(400).send('Invalid ID.');
+            return;
+        }
+
+        (async () => {
+            const subData = await db.findTopicsAndNotes(userId, subId);
+
+            if (!subData) {
+                res.sendStatus(500);
+                return;
+            }
+            else {
+                res.status(200).send(subData);
+            }
+
+        })().catch(err => {
+            console.log(err);
+            res.sendStatus(500);
+            return;
+        });
+    });
+
     // Create a new subject
     router.post('/', (req: Request, res) => {
         if (!req.id) {
@@ -64,7 +97,7 @@ export default (): Router => {
             res.sendStatus(500);
             return;
         }
-        if (!req.body.order) {
+        if (req.body.order === undefined) {
             res.status(400).send('New order required.');
             return;
         }

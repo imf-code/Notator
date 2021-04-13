@@ -77,7 +77,7 @@ export default function Topic(props: ITopicProps) {
     }
 
     return (
-        <div className='flex flex-none flex-col overflow-hidden border-green-200 border-r4 w-80 m-2 box-border bg-green-200 rounded-md shadow-md'>
+        <div className='flex flex-none flex-col overflow-hidden border-green-200 border-r4 w-80 m-2 box-border bg-green-200 rounded-md shadow-md' >
             <div className='flex justify-between mb-1'>
                 <div className='w-5/6 pl-1'>
                     {edit ?

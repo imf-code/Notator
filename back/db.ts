@@ -167,7 +167,7 @@ export default class Database {
             .values([{
                 name: subj,
                 client: userId,
-                topicOrder: ''
+                topicOrder: JSON.stringify([])
             }])
             .execute();
     }
