@@ -13,7 +13,7 @@ function App() {
   const [loginStatus, setLoginStatus] = useState<boolean>(false);
   const [currentSubject, setCurrentSubject] = useState<number | undefined>(undefined);
 
-  // Attempt to get user data using existing session cookie.
+  // Attempt to get user data using existing session cookie
   useEffect(() => {
     axios.get('/api/user')
       .then(resp => {
@@ -65,12 +65,12 @@ function App() {
   return (
     <div className='flex flex-col h-screen bg-yellow-50 overflow-hidden'>
 
-      {loginStatus ?
+      {!loginStatus ?
+        <LoginForm {...{ setLoginStatus }} /> :
         <Header name={userData?.name}>
           <Subjects {...{ setCurrentSubject }} />
           <Logout {...{ setLoginStatus }} />
-        </Header> :
-        <LoginForm {...{ setLoginStatus }} />}
+        </Header>}
 
       {currentSubject && <MainView subId={currentSubject} />}
 
