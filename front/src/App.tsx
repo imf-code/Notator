@@ -5,6 +5,7 @@ import Logout from './Logout';
 import Subjects from './Subjects';
 import { IUser } from './Interfaces';
 import MainView from './MainView';
+import Header from './Header';
 
 function App() {
 
@@ -12,7 +13,7 @@ function App() {
   const [loginStatus, setLoginStatus] = useState<boolean>(false);
   const [currentSubject, setCurrentSubject] = useState<number | undefined>(undefined);
 
-  // Check if user is currently logged in on server using session cookie.
+  // Attempt to get user data using existing session cookie
   useEffect(() => {
     axios.get('/api/user')
       .then(resp => {
@@ -28,9 +29,11 @@ function App() {
           alert('There was a problem connecting to the note server. The service may be down. Please try again later.');
         }
       })
-  }, []);
+  },
+    []
+  );
 
-  // GET user data on login and clear memory on logout.
+  // GET user data on login and clear local user data on logout
   useEffect(() => {
     if (loginStatus && !userData) {
       axios.get('/api/user')
@@ -62,23 +65,12 @@ function App() {
   return (
     <div className='flex flex-col h-screen bg-yellow-50 overflow-hidden'>
 
-      {loginStatus ?
-        <div className='flex top-0 justify-between w-full h-11 pt-2 px-2 bg-green-300'>
-
-          {userData && <div className='text-xl font-medium select-none cursor-pointer' onClick={() => window.location.reload()}>
-            Notes of&nbsp;
-            <span className='capitalize'>
-              {userData.name}
-            </span>
-          </div>}
-
+      {!loginStatus ?
+        <LoginForm {...{ setLoginStatus }} /> :
+        <Header name={userData?.name}>
           <Subjects {...{ setCurrentSubject }} />
-
           <Logout {...{ setLoginStatus }} />
-
-        </div> :
-
-        <LoginForm {...{ setLoginStatus }} />}
+        </Header>}
 
       {currentSubject && <MainView subId={currentSubject} />}
 

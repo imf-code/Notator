@@ -28,6 +28,7 @@ export default (): Router => {
         });
     });
 
+    // Create new note
     router.post('/', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
@@ -63,6 +64,7 @@ export default (): Router => {
         });
     });
 
+    // Update note text
     router.patch('/:noteId', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
@@ -96,7 +98,8 @@ export default (): Router => {
         });
     });
 
-    router.patch('/move', (req: Request, res) => {
+    // Move note to another topic
+    router.patch('/move/:noteId', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
             return;
@@ -105,14 +108,10 @@ export default (): Router => {
             res.status(400).send('No topic ID provided.');
             return;
         }
-        if (!req.body.noteId) {
-            res.status(400).send('No note ID provided.');
-            return;
-        }
 
         const userId = req.id;
         const topicId = Number(req.body.topicId);
-        const noteId = Number(req.body.noteId);
+        const noteId = Number(req.params.noteId);
 
         if (Number.isNaN(topicId) || Number.isNaN(noteId)) {
             res.status(400).send('Invalid ID.');
@@ -134,6 +133,7 @@ export default (): Router => {
         });
     });
 
+    // Delete note
     router.delete('/:noteId', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);

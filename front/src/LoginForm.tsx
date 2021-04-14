@@ -5,15 +5,20 @@ interface ILoginFormProps {
     setLoginStatus?: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-/** Component for handling login/signup. */
+/** Component for handling login/signup */
 export default function LoginForm(props: ILoginFormProps): JSX.Element {
     const [username, setUsername] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [message, setMessage] = useState<string>('');
 
     const loginRef = useRef<HTMLInputElement>(null);
-    const signupRef = useRef<HTMLButtonElement>(null);
+    const signupRef = useRef<HTMLInputElement>(null);
 
+    /**
+     * Attempt login
+     * @param username Username
+     * @param password Password
+     */
     async function onLogin(username: string, password: string) {
         if (!username) {
             setMessage('Username required.');
@@ -25,29 +30,15 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
         }
 
         if (loginRef.current) loginRef.current.disabled = true;
+        if (signupRef.current) signupRef.current.disabled = true;
 
         (async () => {
-            const loggedIn = await axios.get('/api/auth/login_status')
-                .then(resp => {
-                    return resp.data as boolean;
-                })
-                .catch(err => {
-                    console.log(err);
-                    throw err;
-                });
-
-            if (loggedIn) {
-                setMessage('Already logged in. Log out before trying to log in again.');
-                return;
-            }
-
             const params = new URLSearchParams();
             params.append('username', username);
             params.append('password', password);
             axios.post('/api/auth/login', params)
                 .then((resp) => {
                     if (resp.status === 200) {
-                        setMessage('Login successful.');
                         if (props.setLoginStatus) props.setLoginStatus(true);
                     }
                     else setMessage('Something went wrong with your login attempt. Please try again later.');
@@ -64,8 +55,14 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
         });
 
         if (loginRef.current) loginRef.current.disabled = false;
+        if (signupRef.current) signupRef.current.disabled = false;
     }
 
+    /**
+     * Attempt signup. Login on success
+     * @param username Username
+     * @param password Password
+     */
     async function onSignup(username: string, password: string) {
         if (!username) {
             setMessage('Username required.');
@@ -80,6 +77,7 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
         const storedPassword = password;
 
         if (signupRef.current) signupRef.current.disabled = true;
+        if (loginRef.current) loginRef.current.disabled = true;
 
         axios.post(`/api/auth/signup`, {
             username: storedUsername,
@@ -87,7 +85,6 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
         })
             .then((resp) => {
                 if (resp.status === 201) {
-                    setMessage(resp.data);
                     onLogin(storedUsername, storedPassword);
                 }
                 else setMessage('Something went wrong with your signup attempt. Please try again later.');
@@ -98,6 +95,8 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
             });
 
         if (signupRef.current) signupRef.current.disabled = false;
+        if (loginRef.current) loginRef.current.disabled = false;
+
     }
 
     return (
@@ -107,7 +106,7 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
                     Welcome to Notator
                 </p>
                 <p className='float-right text-gray-600 text-sm'>
-                    ver. 0.7
+                    ver. 0.8
                 </p>
                 <form onSubmit={event => {
                     event.preventDefault();
@@ -132,10 +131,8 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
                     <div className='flex flex-row'>
                         <input className='flex-auto bg-green-200 focus:outline-none hover:bg-green-400 shadow-md rounded-sm py-0.5 my-2 cursor-pointer'
                             type='submit' value='Login' ref={loginRef} />
-                        <button className='flex-auto bg-green-200 focus:outline-none hover:bg-green-400 shadow-md rounded-sm py-0.5 my-2 ml-1'
-                            onClick={() => onSignup(username, password)} ref={signupRef}>
-                            Signup
-                        </button>
+                        <input className='flex-auto bg-green-200 focus:outline-none hover:bg-green-400 shadow-md rounded-sm py-0.5 my-2 ml-1'
+                            type='button' onClick={() => onSignup(username, password)} ref={signupRef} value='Signup' />
                     </div>
                 </form>
 

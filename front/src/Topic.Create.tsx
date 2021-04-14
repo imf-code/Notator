@@ -1,13 +1,14 @@
 import { useRef, useState } from "react";
+import { HeaderFormButton } from "./Buttons.Header";
 
 interface ICreateTopicProps {
-    /** Function that handles the creation of new topic
+    /** Handler for creating a new topic
      * @param name Name of the new topic
      */
     addTopic: (name: string) => Promise<void>;
 }
 
-/** Component that includes the form for creating a new topic */
+/** Component for inputing a name for a new topic */
 export default function CreateTopic(props: ICreateTopicProps) {
     const [newTopic, setNewTopic] = useState<string>('');
 
@@ -24,18 +25,21 @@ export default function CreateTopic(props: ICreateTopicProps) {
     }
 
     return (
-        <form onSubmit={event => {
-            event.preventDefault();
-            onFinish(newTopic);
-        }}>
-            <input
+        <form className='flex justify-between w-72'
+            onSubmit={event => {
+                event.preventDefault();
+                onFinish(newTopic);
+            }}>
+
+            <input className='w-64 align-middle mr-1 p-1 focus:outline-none rounded-sm shadow-inner bg-green-100'
                 type='text'
                 placeholder='Create a new topic...'
                 value={newTopic}
                 onChange={(event) => setNewTopic(event.target.value)}
             />
 
-            <input
+            <HeaderFormButton
+                ref={submitRef}
                 type='submit'
                 value='Create'
             />

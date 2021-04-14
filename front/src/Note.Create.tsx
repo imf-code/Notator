@@ -1,4 +1,8 @@
 import { useRef, useState } from "react";
+import { iconStyle } from './Buttons.Icons';
+
+// Icons
+import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 
 interface ICreateNoteProps {
     /** ID of the parent topic */
@@ -27,21 +31,25 @@ export default function CreateNote(props: ICreateNoteProps) {
     }
 
     return (
-        <form onSubmit={event => {
-            event.preventDefault();
-            onFinish(newNote);
-        }}>
+        <form className='flex justify-between p-0 mb-2'
+            onSubmit={event => {
+                event.preventDefault();
+                onFinish(newNote);
+            }}>
+
             <input
+                className='align-middle w-5/6 h-7 px-1 focus:outline-none rounded-sm shadow-inner bg-green-100'
                 type='text'
                 placeholder='Create a new note...'
                 value={newNote}
                 onChange={(event) => setNewNote(event.target.value)}
             />
 
-            <input
-                type='submit'
-                value='Create'
-            />
+            <label>
+                <input type='submit' ref={submitRef} hidden />
+                <AddCircleOutlineIcon fontSize='default' className={iconStyle} />
+            </label>
+
         </form>
     );
 }

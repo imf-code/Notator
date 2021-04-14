@@ -8,8 +8,8 @@ interface ILogout {
 export default function Logout(props: ILogout) {
 
     return (
-        <span className='flex'>
-            <HeaderButton className=''
+        <div>
+            <HeaderButton
                 onClick={() => {
                     axios.post('/api/auth/logout')
                         .then(resp => {
@@ -25,6 +25,6 @@ export default function Logout(props: ILogout) {
                 }}>
                 Logout
             </HeaderButton>
-        </span>
+        </div>
     );
 }

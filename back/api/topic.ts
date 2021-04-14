@@ -5,38 +5,7 @@ export default (): Router => {
     const router = Router();
     const db = new Database;
 
-    router.get('/:subId/with-notes', (req: Request, res) => {
-        if (!req.id) {
-            res.sendStatus(500);
-            return;
-        }
-
-        const userId = req.id;
-        const subId = Number(req.params.subId);
-
-        if (Number.isNaN(subId)) {
-            res.status(400).send('Invalid ID.');
-            return;
-        }
-
-        (async () => {
-            const subData = await db.findTopicsAndNotes(userId, subId);
-
-            if (!subData) {
-                res.sendStatus(500);
-                return;
-            }
-            else {
-                res.status(200).send(subData.topics);
-            }
-
-        })().catch(err => {
-            console.log(err);
-            res.sendStatus(500);
-            return;
-        });
-    });
-
+    // Create a new topic
     router.post('/', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
@@ -72,12 +41,13 @@ export default (): Router => {
         });
     });
 
+    // Reorder notes under a topic
     router.patch('/order/:topicId', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
             return;
         }
-        if (!req.body.order) {
+        if (req.body.order === undefined) {
             res.status(400).send('New order required.');
             return;
         }
@@ -105,6 +75,7 @@ export default (): Router => {
         });
     });
 
+    // Rename a topic
     router.patch('/:topicId', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);
@@ -138,6 +109,7 @@ export default (): Router => {
         });
     });
 
+    // Delete a topic
     router.delete('/:topicId', (req: Request, res) => {
         if (!req.id) {
             res.sendStatus(500);

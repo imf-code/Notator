@@ -1,3 +1,21 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+    /* TODO: Scrollbar style for non-webkit browsers */
+    .bar-sm::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .bar-sm::-webkit-scrollbar-track {
+        --tw-bg-opacity: 1;
+        background: rgba(167, 243, 208, var(--tw-bg-opacity));
+    }
+
+    .bar-sm::-webkit-scrollbar-thumb {
+        --tw-bg-opacity: 1;
+        background: rgba(6, 95, 70, var(--tw-bg-opacity));
+        border-radius: 10px;
+    }
+}

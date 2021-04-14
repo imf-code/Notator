@@ -165,9 +165,9 @@ export default class Database {
             .insert()
             .into(Subject)
             .values([{
-                client: userId,
                 name: subj,
-                topicOrder: ''
+                client: userId,
+                topicOrder: JSON.stringify([])
             }])
             .execute();
     }
@@ -187,8 +187,8 @@ export default class Database {
                 name: subName
             })
             .where({
-                client: userId,
-                id: subId
+                id: subId,
+                client: userId
             })
             .execute();
     }
@@ -205,8 +205,8 @@ export default class Database {
             .delete()
             .from(Subject)
             .where({
-                client: userId,
-                id: subId
+                id: subId,
+                client: userId
             })
             .execute();
     }
@@ -223,8 +223,8 @@ export default class Database {
             .getRepository(Topic)
             .findOne({
                 where: {
-                    client: userId,
-                    id: topicId
+                    id: topicId,
+                    client: userId
                 },
                 relations: [
                     'notes'
@@ -243,8 +243,8 @@ export default class Database {
             .getRepository(Subject)
             .findOne({
                 where: {
-                    client: userId,
-                    id: subId
+                    id: subId,
+                    client: userId
                 },
                 relations: [
                     'topics',
@@ -269,7 +269,7 @@ export default class Database {
                 client: userId,
                 subject: subId,
                 name: topic,
-                noteOrder: ''
+                noteOrder: JSON.stringify([])
             }])
             .execute();
     }
@@ -289,8 +289,8 @@ export default class Database {
                 topicOrder: newOrder
             })
             .where({
-                client: userId,
-                id: subId
+                id: subId,
+                client: userId
             })
             .execute();
     }
@@ -310,8 +310,8 @@ export default class Database {
                 name: topicName
             })
             .where({
-                client: userId,
-                id: topicId
+                id: topicId,
+                client: userId
             })
             .execute();
     }
@@ -328,8 +328,8 @@ export default class Database {
             .delete()
             .from(Topic)
             .where({
-                client: userId,
-                id: topicId
+                id: topicId,
+                client: userId
             })
             .execute();
     }
@@ -370,8 +370,8 @@ export default class Database {
                 noteOrder: newOrder
             })
             .where({
-                client: userId,
-                topic: topicId
+                id: topicId,
+                client: userId
             })
             .execute();
     }
@@ -391,8 +391,8 @@ export default class Database {
                 text: newNote
             })
             .where({
-                client: userId,
-                id: noteId
+                id: noteId,
+                client: userId
             })
             .execute();
     }
@@ -408,8 +408,8 @@ export default class Database {
         const ownsTargetTopic = await getConnection()
             .getRepository(Topic)
             .findOne({
-                client: userId,
-                id: topicId
+                id: topicId,
+                client: userId
             });
 
         if (ownsTargetTopic) {
@@ -420,8 +420,8 @@ export default class Database {
                     topic: topicId
                 })
                 .where({
-                    client: userId,
-                    id: noteId
+                    id: noteId,
+                    client: userId
                 })
                 .execute();
         }
@@ -439,8 +439,8 @@ export default class Database {
             .delete()
             .from(Note)
             .where({
-                client: userId,
-                id: noteId
+                id: noteId,
+                client: userId
             })
             .execute();
     }

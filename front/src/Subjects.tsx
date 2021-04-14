@@ -6,12 +6,12 @@ import EditSubject from './Subject.Edit';
 import { HeaderButton } from './Buttons.Header';
 
 interface ISubjectsProps {
-    /** Set currently selected subject. */
+    /** Set currently selected subject */
     setCurrentSubject: React.Dispatch<React.SetStateAction<number | undefined>>
 }
 
 /**
- * Component for displaying, selecting and manipulating subjects.
+ * Component for selecting and manipulating subjects
  */
 export default function Subjects(props: ISubjectsProps) {
 
@@ -45,7 +45,7 @@ export default function Subjects(props: ISubjectsProps) {
         [subjectId, props]
     );
 
-    // Find currently selected subject for internal use
+    // Find and separate currently selected subject (for internal use)
     useEffect(() => {
         if (!subjectId || !localSubjects || !localSubjects.length) return;
 
@@ -66,7 +66,7 @@ export default function Subjects(props: ISubjectsProps) {
 
     /**
      * Create a new Subject
-     * @param name Name of the new subject.
+     * @param name Name of the new subject
      */
     async function addSubject(name: string) {
         if (!localSubjects) {
@@ -181,7 +181,7 @@ export default function Subjects(props: ISubjectsProps) {
         else alert('Something went wrong. Please try refreshing the page.');
     }
 
-    /** Current subjects as an array of HTML option elements */
+    /** List of current subjects as an array of HTML option elements */
     const optionArray = useMemo(() => {
         if (!localSubjects) return null;
 
@@ -196,15 +196,18 @@ export default function Subjects(props: ISubjectsProps) {
 
 
     return (
-        <span className='flex flex-nowrap justify-start w-3/5 h-auto'>
+        <div className='flex flex-nowrap justify-start w-3/5 h-auto'>
+
             {(!edit && !create) &&
                 <select className='w-52 h-7 mx-0.5 focus:outline-none rounded-sm shadow-inner bg-green-100'
                     value={subjectId ?? 'default'}
                     onChange={(event) => setSubjectId(Number(event.target.value))}>
+
                     <option key={'default'} value='default' disabled>
                         Select a subject...
                     </option>
                     {optionArray}
+
                 </select>}
 
             {create && <CreateSubject {...{ addSubject }} />}
@@ -231,6 +234,6 @@ export default function Subjects(props: ISubjectsProps) {
             <HeaderButton onClick={() => deleteSubject(subjectId)}>
                 Delete
             </HeaderButton>
-        </span >
+        </div >
     );
 }

@@ -8,12 +8,12 @@ interface ISubjectProps {
     name: string;
     /** Handler for submitting edited name */
     onEdit: (id: number, name: string) => Promise<void>;
-    /** Function for canceling edit without modifications */
+    /** Handler for canceling edit without modifications */
     cancelEdit: () => void;
 }
 
 /**
- * Component for editing a subject.
+ * Component for editing a subject
  */
 export default function EditSubject(props: ISubjectProps) {
     const [editedName, setEditedName] = useState<string>(props.name);

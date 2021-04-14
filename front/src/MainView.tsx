@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { INote, ITopic } from './Interfaces';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+
+import { INote, ISubject, ITopic } from './Interfaces';
 import Topic from './Topic';
 import CreateTopic from './Topic.Create';
 import Note from './Note';
@@ -12,19 +14,27 @@ interface ITopicsProps {
 }
 
 interface INoteWithTopic extends INote {
+    /** Topic ID */
     topicId: number;
 }
 
-/** Component for displaying and manipulating topics and the notes under each topic. */
+interface ITopicWithOrder {
+    name: string;
+    noteOrder: number[];
+}
+
+/** Component for displaying and manipulating topics and the notes under each topic */
 export default function MainView(props: ITopicsProps) {
 
     const [localNotes, setLocalNotes] = useState<Map<number, INoteWithTopic> | undefined>(undefined);
-    const [localTopics, setLocalTopics] = useState<Map<number, string> | undefined>(undefined);
+    const [localTopics, setLocalTopics] = useState<Map<number, ITopicWithOrder> | undefined>(undefined);
+    const [selectedNote, setSelectedNote] = useState<number | undefined>(undefined);
+    const [topicOrder, setTopicOrder] = useState<number[] | undefined>(undefined);
 
-    // GET Topics and Notes
+    // GET Topics and Notes and turn them into Map objects for internal use
     useEffect(() => {
         (async () => {
-            const apiResponse = axios.get(`/api/topic/${props.subId}/with-notes`)
+            const apiResponse = axios.get(`/api/subject/${props.subId}/with-notes`)
                 .then(resp => {
                     if (resp.status !== 200) {
                         console.log(resp);
@@ -32,7 +42,7 @@ export default function MainView(props: ITopicsProps) {
                         return undefined;
                     }
                     else {
-                        return resp.data as ITopic[];
+                        return resp.data as ISubject;
                     }
                 }).catch(err => {
                     console.log(err.response.data);
@@ -40,24 +50,27 @@ export default function MainView(props: ITopicsProps) {
                     return undefined;
                 });
 
-            const newNotes = new Map<number, INoteWithTopic>();
-            const newTopics = new Map<number, string>();
+            const subject: ISubject | undefined = await apiResponse;
+            if (!subject) return;
 
-            const topicsAndNotes = await apiResponse;
-
+            const topicsAndNotes: ITopic[] | undefined = subject.topics;
             if (!topicsAndNotes) return;
 
+            const newTopics = new Map<number, ITopicWithOrder>();
+            const newNotes = new Map<number, INoteWithTopic>();
+
             topicsAndNotes.forEach(topic => {
+                newTopics.set(topic.id, { name: topic.name, noteOrder: JSON.parse(topic.noteOrder) as number[] });
                 topic.notes.forEach(note => {
                     newNotes.set(note.id, { ...note, topicId: topic.id } as INoteWithTopic);
                 });
             });
-            topicsAndNotes.forEach(topic => {
-                newTopics.set(topic.id, topic.name);
-            });
 
+            const newTopicOrder = JSON.parse(subject.topicOrder) as number[];
+
+            setTopicOrder(newTopicOrder);
             setLocalTopics(newTopics);
-            setLocalNotes(newNotes);;
+            setLocalNotes(newNotes);
 
         })();
     },
@@ -66,10 +79,10 @@ export default function MainView(props: ITopicsProps) {
 
     /**
      * Create a new topic under currently selected subject
-     * @param name Name for the new topic
+     * @param name Name of the new topic to be created
      */
-    async function addTopic(name: string) {
-        if (!localTopics) {
+    async function createTopic(name: string) {
+        if (!localTopics || !topicOrder) {
             alert('Something went wrong. Please try refreshing the page.');
             return;
         }
@@ -84,21 +97,32 @@ export default function MainView(props: ITopicsProps) {
             console.log(err);
             if (err.response && err.response.status === 400) alert(err.response.data);
             else alert('Something went wrong while attempting to create a new topic. Please try again later.');
-            return null;
+            return undefined;
         });
 
-        if (newId) {
-            const newTopics = new Map(localTopics);
-            newTopics.set(newId, name);
+        if (!newId) return;
 
-            setLocalTopics(newTopics);
-        }
-        else return;
+        const newTopics = new Map(localTopics);
+        newTopics.set(newId, { name: name, noteOrder: [] });
+
+        setTopicOrder([newId, ...topicOrder]);
+        setLocalTopics(newTopics);
+
+        axios.patch(`/api/subject/order/${props.subId}`, {
+            order: JSON.stringify([newId, ...topicOrder])
+        }).then(resp => {
+            if (resp.status === 200) return;
+            else throw new Error();
+        }).catch(err => {
+            console.log(err);
+            if (err.response && err.response.status === 400) alert('Something went wrong. Please try refreshing the page.');
+            else alert('Something went wrong. The service may be down. Please try again later.');
+        });
     }
 
     /**
      * Rename an existing topic
-     * @param topicId ID of topic to be modified
+     * @param topicId ID of the topic to be renamed
      * @param name New name for the topic
      */
     const renameTopic = useCallback(async (topicId: number, name: string) => {
@@ -116,17 +140,22 @@ export default function MainView(props: ITopicsProps) {
             console.log(err);
             if (err.response && err.response.status === 400) alert(err.response.data);
             else alert('Something went wrong while renaming the topic. Please try again later.');
-            return null;
+            return undefined;
         });
 
+        const oldTopic = localTopics.get(topicId);
+        if (!oldTopic) {
+            alert('Something went wrong. Please try refreshing the page.');
+            return;
+        }
+
         const newTopics = new Map(localTopics);
-        newTopics.set(topicId, name);
+        newTopics.set(topicId, { name: name, noteOrder: oldTopic.noteOrder });
+        setLocalTopics(newTopics);
 
         const updatedTopic = await apiResponse;
-        if (updatedTopic === null) return;
-        else if (updatedTopic === topicId) {
-            setLocalTopics(newTopics);
-        }
+
+        if (!updatedTopic || (updatedTopic === topicId)) return;
         else alert('Something went wrong. Please try refreshing the page.');
     },
         [localTopics]
@@ -137,7 +166,7 @@ export default function MainView(props: ITopicsProps) {
      * @param topicId ID of the topic to be deleted
      */
     const deleteTopic = useCallback(async (topicId: number) => {
-        if (!localTopics) {
+        if (!localTopics || !topicOrder) {
             alert('Something went wrong. Please try refreshing the page.');
             return;
         }
@@ -147,23 +176,38 @@ export default function MainView(props: ITopicsProps) {
                 if (resp.status === 200) return resp.data.id as number;
                 else throw new Error();
             }).catch(err => {
-                console.log(err);
+                console.log(err.response.data);
                 alert('Something went wrong while deleting the topic. Please try again later.');
-                return null;
+                return undefined;
             });
 
         const newTopics = new Map(localTopics);
         newTopics.delete(topicId);
 
         const deletedTopic = await apiResponse;
+        setLocalTopics(newTopics);
 
-        if (deletedTopic === null) return;
+        if (!deletedTopic) return;
         else if (deletedTopic === topicId) {
-            setLocalTopics(newTopics);
+
+            const newTopicOrder = topicOrder.filter(topic => topic !== topicId);
+
+            setTopicOrder(newTopicOrder);
+
+            axios.patch(`/api/subject/order/${props.subId}`, {
+                order: JSON.stringify(newTopicOrder)
+            }).then(resp => {
+                if (resp.status === 200) return;
+                else throw new Error();
+            }).catch(err => {
+                console.log(err);
+                if (err.response && err.response.status === 400) alert('Something went wrong. Please try refreshing the page.');
+                else alert('Something went wrong. The service may be down. Please try again later.');
+            });
         }
         else alert('Something went wrong. Please try refreshing the page.');
     },
-        [localTopics]
+        [localTopics, props.subId, topicOrder]
     );
 
     /**
@@ -171,8 +215,8 @@ export default function MainView(props: ITopicsProps) {
      * @param topicId ID of the parent topic
      * @param text Text for the new note
      */
-    const addNote = useCallback(async (topicId: number, text: string) => {
-        if (!localNotes) {
+    const createNote = useCallback(async (topicId: number, text: string) => {
+        if (!localNotes || !localTopics) {
             alert('Something went wrong. Please try refreshing the page.');
             return;
         }
@@ -190,26 +234,46 @@ export default function MainView(props: ITopicsProps) {
             return null;
         });
 
-        if (newId) {
-            const newNote: INoteWithTopic = {
-                id: newId,
-                text: text,
-                topicId: topicId
-            }
+        if (!newId) return;
 
-            const newNotes = new Map(localNotes);
-            newNotes.set(newId, newNote);
-
-            setLocalNotes(newNotes);
+        const newNote: INoteWithTopic = {
+            id: newId,
+            text: text,
+            topicId: topicId
         }
-        else return;
+
+        const newNotes = new Map(localNotes);
+        newNotes.set(newId, newNote);
+
+        const newTopics = new Map(localTopics);
+        const topic = newTopics.get(topicId);
+
+        if (!topic) {
+            alert('Something went wrong. Please try refreshing the page.');
+            return;
+        };
+
+        newTopics.set(topicId, { name: topic.name, noteOrder: [newId, ...topic.noteOrder] });
+
+        setLocalTopics(newTopics);
+        setLocalNotes(newNotes);
+
+        axios.patch(`/api/topic/order/${topicId}`, {
+            order: JSON.stringify([newId, ...topic.noteOrder])
+        }).then(resp => {
+            if (resp.status === 200) return;
+            else throw new Error();
+        }).catch(err => {
+            console.log(err);
+            if (err.response && err.response.status === 400) alert('Something went wrong. Please try refreshing the page.');
+            else alert('Something went wrong. The service may be down. Please try again later.');
+        });
     },
-        [localNotes]
+        [localNotes, localTopics]
     );
 
     /**
      * Edit the text of a note
-     * @param topicId ID of the parent topic
      * @param noteId ID of the note to be modified
      * @param text New text for the note
      */
@@ -228,7 +292,7 @@ export default function MainView(props: ITopicsProps) {
             console.log(err);
             if (err.response && err.response.status === 400) alert(err.response.data);
             else alert('Something went wrong while editing the note. Please try again later.');
-            return null;
+            return undefined;
         });
 
         const newNotes = new Map(localNotes);
@@ -241,76 +305,22 @@ export default function MainView(props: ITopicsProps) {
 
         const newNote = { ...oldNote, text: text } as INoteWithTopic;
         newNotes.set(noteId, newNote);
+        setLocalNotes(newNotes);
 
         const updatedNote = await apiResponse;
 
-        if (updatedNote === null) return;
-        else if (updatedNote === noteId) {
-            setLocalNotes(newNotes);
-        }
+        if (!updatedNote || (updatedNote === noteId)) return;
         else alert('Something went wrong. Please try refreshing the page.');
     },
         [localNotes]
     );
 
     /**
-     * **WIP**
-     * Move a note to another topic
-     * @param topicId ID of the topic to be move the note to.
-     * @param noteID ID of the note to be moved.
-     */
-    // eslint-disable-next-line
-    const moveNote = useCallback(async (topicId: number, noteId: number) => {
-        if (!localNotes) {
-            alert('Something went wrong. Please try refreshing the page.');
-            return;
-        }
-
-        const apiResponse = axios.patch(`/api/note/move/`, {
-            topicId: topicId,
-            noteId: noteId
-        }).then(resp => {
-            if (resp.status === 200) return resp.data.id as number;
-            else throw new Error();
-        }).catch(err => {
-            console.log(err);
-            if (err.response && err.response.status === 400) alert(err.response.data);
-            else alert('Something went wrong while editing the note. Please try again later.');
-            return null;
-        });
-
-        const newNotes = new Map(localNotes);
-        const oldNote = newNotes.get(noteId);
-
-        if (!oldNote) {
-            alert('Something went wrong. Please try refreshing the page.');
-            return;
-        }
-
-        const newNote = { ...oldNote, topicId: topicId } as INoteWithTopic;
-        newNotes.set(noteId, newNote);
-
-        const movedNote = await apiResponse;
-
-        if (movedNote === null) return;
-        else if (movedNote === noteId) {
-            setLocalNotes(newNotes);
-        }
-        else {
-            alert('Something went wrong. Please try refreshing the page.');
-            return;
-        }
-    },
-        [localNotes]
-    );
-
-    /**
      * Delete a note
-     * @param topicId ID of the parent topic
      * @param noteId ID of the note to be deleted
      */
     const deleteNote = useCallback(async (noteId: number) => {
-        if (!localNotes) {
+        if (!localNotes || !localTopics) {
             alert('Something went wrong. Please try refreshing the page.');
             return;
         }
@@ -320,82 +330,387 @@ export default function MainView(props: ITopicsProps) {
                 if (resp.status === 200) return resp.data.id as number;
                 else throw new Error();
             }).catch(err => {
-                console.log(err);
-                alert('Something went wrong while deleting the topic. Please try again later.');
+                console.log(err.response.data);
+                alert('Something went wrong while deleting the note. Please try again later.');
                 return null;
             });
 
         const newNotes = new Map(localNotes);
+        const removed = newNotes.get(noteId);
         newNotes.delete(noteId);
+
+        const newTopics = new Map(localTopics);
+
+        if (!removed) {
+            alert('Something went wrong. Please try refreshing the page.');
+            return;
+        };
+
+        const topic = newTopics.get(removed.topicId);
+
+        if (!topic) {
+            alert('Something went wrong. Please try refreshing the page.');
+            return;
+        };
+
+        const newOrder = topic.noteOrder.filter(note => note !== noteId);
+        newTopics.set(removed.topicId, { name: topic.name, noteOrder: newOrder });
+
+        setLocalTopics(newTopics);
+        setLocalNotes(newNotes);
 
         const deletedNote = await apiResponse;
 
-        if (deletedNote === null) return;
+        if (!deletedNote) return;
         else if (deletedNote === noteId) {
-            setLocalNotes(newNotes);
+            axios.patch(`/api/topic/order/${removed.topicId}`, {
+                order: JSON.stringify(newOrder)
+            }).then(resp => {
+                if (resp.status === 200) return;
+                else throw new Error();
+            }).catch(err => {
+                console.log(err);
+                if (err.response && err.response.status === 400) alert('Something went wrong. Please try refreshing the page.');
+                else alert('Something went wrong. The service may be down. Please try again later.');
+            });
         }
         else alert('Something went wrong. Please try refreshing the page.');
     },
-        [localNotes]
+        [localNotes, localTopics]
     );
 
     /**
-     * A Map object including an array of Note components under each topic ID. 
+    * Move a note to another topic
+    * @param sTopicId ID of source topic
+    * @param dTopicId ID of destination topic
+    * @param startInd Array index of movind note
+    * @param endInd Destination array index
+    */
+    const moveNote = useCallback(async (sTopicId: number, dTopicId: number, startInd: number, endInd: number) => {
+        if (!localNotes || !localTopics) {
+            alert('Something went wrong. Please try refreshing the page.');
+            return;
+        }
+
+        const newLocalTopics = new Map(localTopics);
+        const newLocalNotes = new Map(localNotes);
+
+        const sTopic = newLocalTopics.get(sTopicId);
+        const dTopic = newLocalTopics.get(dTopicId);
+
+        if (!sTopic || !dTopic) {
+            alert('Something went wrong. Please try refreshing the page.');
+            return;
+        }
+
+        const sNewNoteOrder = [...sTopic.noteOrder];
+        const dNewNoteOrder = [...dTopic.noteOrder];
+
+        const [noteId] = sNewNoteOrder.splice(startInd, 1);
+        dNewNoteOrder.splice(endInd, 0, noteId);
+
+        newLocalTopics.set(sTopicId, { ...sTopic, noteOrder: sNewNoteOrder });
+        newLocalTopics.set(dTopicId, { ...dTopic, noteOrder: dNewNoteOrder });
+
+        const apiResponse = axios.patch(`/api/note/move/${noteId}`, {
+            topicId: dTopicId,
+            noteId: noteId
+        }).then(resp => {
+            if (resp.status === 200) return resp.data.id as number;
+            else throw new Error();
+        }).catch(err => {
+            console.log(err);
+            if (err.response && err.response.status === 400) alert(err.response.data);
+            else alert('Something went wrong while editing the note. Please try again later.');
+            return;
+        });
+
+        axios.patch(`/api/topic/order/${sTopicId}`, {
+            order: JSON.stringify(sNewNoteOrder)
+        }).then(resp => {
+            if (resp.status === 200) return;
+            else throw new Error();
+        }).catch(err => {
+            console.log(err);
+            if (err.response && err.response.status === 400) alert('Something went wrong. Please try refreshing the page.');
+            else alert('Something went wrong. The service may be down. Please try again later.');
+        });
+
+        axios.patch(`/api/topic/order/${dTopicId}`, {
+            order: JSON.stringify(dNewNoteOrder)
+        }).then(resp => {
+            if (resp.status === 200) return;
+            else throw new Error();
+        }).catch(err => {
+            console.log(err);
+            if (err.response && err.response.status === 400) alert('Something went wrong. Please try refreshing the page.');
+            else alert('Something went wrong. The service may be down. Please try again later.');
+        });
+
+        const oldNote = newLocalNotes.get(noteId);
+
+        if (!oldNote) {
+            alert('Something went wrong. Please try refreshing the page.');
+            return;
+        }
+
+        const newNote = { ...oldNote, topicId: dTopicId } as INoteWithTopic;
+        newLocalNotes.set(noteId, newNote);
+
+        setLocalNotes(newLocalNotes);
+        setLocalTopics(newLocalTopics);
+
+        const movedNote = await apiResponse;
+
+        if (!movedNote || movedNote === noteId) return;
+        else {
+            alert('Something went wrong. Please try refreshing the page.');
+            return;
+        }
+    },
+        [localNotes, localTopics]
+    );
+
+    /**
+     * Moves a note within a topic
+     * @param topicId ID of the topic to be reorganized
+     * @param startInd Array index of the note to be moved
+     * @param endInd Destination array index
+     */
+    const reorderNotes = useCallback(async (topicId: number, startInd: number, endInd: number) => {
+        if (!localTopics) return;
+
+        const topic = localTopics.get(topicId);
+
+        if (!topic) {
+            alert('Something went wrong. Please try refreshing the page.');
+            return;
+        }
+
+        const newNoteOrder = [...topic.noteOrder];
+
+        const [movingNoteId] = newNoteOrder.splice(startInd, 1);
+        newNoteOrder.splice(endInd, 0, movingNoteId);
+
+        const newTopics = new Map(localTopics);
+
+        newTopics.set(topicId, { name: topic.name, noteOrder: newNoteOrder });
+
+        setLocalTopics(newTopics);
+
+        axios.patch(`/api/topic/order/${topicId}`, {
+            order: JSON.stringify(newNoteOrder)
+        }).then(resp => {
+            if (resp.status === 200) return;
+            else throw new Error();
+        }).catch(err => {
+            console.log(err);
+            if (err.response && err.response.status === 400) alert('Something went wrong. Please try refreshing the page.');
+            else alert('Something went wrong. The service may be down. Please try again later.');
+        });
+    },
+        [localTopics]
+    );
+
+    /**
+     * Moves a topic
+     * @param startInd Array index of the topic to be moved
+     * @param endInd Destination array index
+     */
+    const reorderTopics = useCallback(async (startInd: number, endInd: number) => {
+        if (!topicOrder) return;
+
+        const newTopicOrder = [...topicOrder];
+
+        const [movingNoteId] = newTopicOrder.splice(startInd, 1);
+        newTopicOrder.splice(endInd, 0, movingNoteId);
+
+        setTopicOrder(newTopicOrder);
+
+        axios.patch(`/api/subject/order/${props.subId}`, {
+            order: JSON.stringify(newTopicOrder)
+        }).then(resp => {
+            if (resp.status === 200) return;
+            else throw new Error();
+        }).catch(err => {
+            console.log(err);
+            if (err.response && err.response.status === 400) alert('Something went wrong. Please try refreshing the page.');
+            else alert('Something went wrong. The service may be down. Please try again later.');
+        });
+    },
+        [topicOrder, props.subId]
+    );
+
+    /** Drag end handler */
+    const onDragEnd = useCallback((result: DropResult) => {
+
+        const { source, destination, type } = result;
+
+        if (!destination) return;
+
+        switch (type) {
+            case 'NOTE':
+                const sTopicId = +source.droppableId;
+                const dTopicId = +destination.droppableId;
+
+                if (sTopicId === dTopicId) {
+                    reorderNotes(sTopicId, source.index, destination.index);
+                    return;
+                }
+                else moveNote(sTopicId, dTopicId, source.index, destination.index);
+                break;
+            case 'TOPIC':
+                reorderTopics(source.index, destination.index);
+                break;
+            default: return;
+        }
+    },
+        [reorderNotes, reorderTopics, moveNote]
+    );
+
+    /**
+     * Select/unselect a note
+     * @param noteId Note ID
+     */
+    const selectNote = useCallback((noteId: number) => {
+        if (noteId === selectedNote) setSelectedNote(undefined);
+        else setSelectedNote(noteId);
+    },
+        [selectedNote]
+    );
+
+    /**
+     * A Map object with a Note component for each note
      */
     const noteMap = useMemo(() => {
         if (!localNotes) return null;
 
-        const elementMap = new Map<number, JSX.Element[]>();
+        const elementMap = new Map<number, JSX.Element>();
 
         localNotes.forEach(note => {
-            const newElement = <Note key={note.id} onEdit={editNote} onDelete={deleteNote} {...note} />;
-            const existingNotes = elementMap.get(note.topicId);
+            const newElement =
+                <Note key={note.id}
+                    selected={note.id === selectedNote}
+                    setSelected={selectNote}
+                    onEdit={editNote}
+                    onDelete={deleteNote}
+                    {...note} />
 
-            if (existingNotes) existingNotes.push(newElement);
-            else elementMap.set(note.topicId, [newElement]);
+            elementMap.set(note.id, newElement);
         });
 
         return elementMap;
     },
-        [localNotes, editNote, deleteNote]
+        [localNotes, selectedNote, selectNote, editNote, deleteNote]
     );
 
-    /** Array of Topic components with their Note children */
+    /** Array of Topic components with their Note children and added Draggable/Droppable functionality*/
     const topicAndNoteArray = useMemo(() => {
-        if (!localTopics || !noteMap) return null;
+        if (!localTopics || !noteMap || !topicOrder) return null;
 
-        let topicArray: JSX.Element[] = [];
+        /**
+         * A Map object with a Topic component for each topic, 
+         * incl. Note children
+         */
+        const topicMap = new Map<number, JSX.Element>();
 
-        localTopics.forEach((topicName, topicId) => {
-            const noteElements = noteMap.get(topicId);
+        // Iterate through each topic
+        localTopics.forEach((topic, topicId) => {
 
-            topicArray.push(
+            /**
+             * Array of Note components with added Draggable functionality,
+             * in correct order
+             */
+            const orderedNoteArray: JSX.Element[] = topic.noteOrder.map((noteId, ind) => {
+                return (
+                    <Draggable
+                        key={noteId}
+                        draggableId={String(noteId)}
+                        index={ind} >
+                        {(provided, snapshot) => (
+                            <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}>
+                                {noteMap.get(noteId)}
+                            </div>)}
+                    </Draggable>
+                );
+            });
+
+            // Set a Topic component in Map with some added Droppable functionality for note
+            topicMap.set(topicId,
                 <Topic key={topicId}
                     id={topicId}
-                    name={topicName}
+                    name={topic.name}
                     onEdit={renameTopic}
                     onDelete={deleteTopic} >
-                    <div>
-                        <CreateNote key={topicId} addNote={addNote} topicId={topicId} />
-                        {noteElements}
-                    </div>
+
+                    <CreateNote key={topicId} addNote={createNote} topicId={topicId} />
+
+                    <Droppable key={'drop' + topicId} droppableId={String(topicId)} type='NOTE'>
+                        {(provided, snapshot) => (
+
+                            <div className='overflow-y-scroll h-full bar-sm'
+                                ref={provided.innerRef}
+                                {...provided.droppableProps} >
+
+                                {orderedNoteArray}
+                                {provided.placeholder}
+                            </div>)}
+                    </Droppable>
+
                 </Topic>
             );
         });
 
+        /**
+         * Array of Topic components with Note children,
+         * incl. added Draggable functionality
+         */
+        const topicArray: JSX.Element[] = topicOrder.map((topicId, ind) => {
+            return (
+                <Draggable
+                    key={'drag' + topicId}
+                    draggableId={String(topicId)}
+                    index={ind} >
+                    {(provided, snapshot) => (
+                        <div className='flex flex-none flex-col overflow-hidden border-green-200 border-r4 w-80 m-2 box-border bg-green-200 rounded-md shadow-md'
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}>
+                            {topicMap.get(topicId)}
+                        </div>)}
+                </Draggable>
+            )
+        });
+
         return topicArray;
     },
-        [localTopics, noteMap, deleteTopic, renameTopic, addNote]
+        [localTopics, topicOrder, noteMap, deleteTopic, renameTopic, createNote]
     );
 
     return (
-        <div className='flex flex-col flex-grow w-full bg-yellow-50 overflow-x-scroll'>
-            <div className='mx-4 mt-2'>
-                <CreateTopic addTopic={addTopic} />
+        <DragDropContext onDragEnd={onDragEnd}>
+            <div className='flex flex-col flex-grow w-full bg-yellow-50 overflow-hidden'>
+
+                <div className='mx-4 mt-2'>
+                    <CreateTopic addTopic={createTopic} />
+                </div>
+
+                <Droppable key='topics' droppableId='topics' type='TOPIC' direction='horizontal'>
+                    {(provided, snapshot) => (
+                        <div className='flex h-full flex-nowrap overflow-x-scroll flex-row px-2 pb-2'
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}>
+
+                            {topicAndNoteArray}
+                            {provided.placeholder}
+
+                        </div>)}
+                </Droppable>
+
             </div>
-            <div className='flex h-full flex-nowrap flex-row px-2 pb-2'>
-                {topicAndNoteArray}
-            </div>
-        </div>
+        </DragDropContext>
     );
 }
