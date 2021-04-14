@@ -35,6 +35,7 @@ export default (): Router => {
         });
     });
 
+    // Login
     router.post('/login',
         passport.authenticate('local'),
         (req, res) => {
