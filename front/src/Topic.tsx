@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react';
 import { iconStyle } from './Buttons.Icons';
+import { Draggable } from 'react-beautiful-dnd';
 
 // Icons
 import EditIcon from '@material-ui/icons/Edit';
@@ -14,6 +15,8 @@ interface ITopicProps {
     id: number;
     /** Topic name */
     name: string;
+    /** Order index */
+    index: number;
     /**
      * Handler for renaming a topic
      * @param topicId ID of the topic to be modified
@@ -77,42 +80,54 @@ export default function Topic(props: ITopicProps) {
     }
 
     return (
-        <div>
-            <div className='flex justify-between mb-1'>
-                <div className='w-5/6 pl-1'>
-                    {edit ?
-                        <input type='text' value={editedName} onChange={event => setEditedName(event.target.value)}
-                            ref={inputRef}
-                            className='text-lg font-medium w-full h-7 px-1 -mx-1 focus:outline-none rounded-sm shadow-inner bg-green-100' /> :
-                        <p className='text-lg truncate font-medium'>
-                            {props.name}
-                        </p>}
-                </div>
+        <Draggable
+            key={'drag' + props.id}
+            draggableId={String(props.id)}
+            index={props.index} >
 
-                <div>
-                    {edit ?
-                        <button onClick={onStopEdit} ref={editRef}
-                            className='focus:outline-none'>
-                            <SaveAltIcon fontSize='small' className={iconStyle} />
-                        </button> :
-                        <button onClick={() => setEdit(true)}
-                            className='focus:outline-none'>
-                            <EditIcon fontSize='small' className={iconStyle} />
-                        </button>}
-                    {edit ?
-                        <button onClick={onCancelEdit}
-                            className='focus:outline-none'>
-                            <CancelIcon fontSize='small' className={iconStyle} />
-                        </button> :
-                        <button onClick={() => props.onDelete(props.id)}
-                            className='focus:outline-none'>
-                            <DeleteIcon fontSize='small' className={iconStyle} />
-                        </button>}
-                </div>
-            </div>
+            {(provided, snapshot) => (
+                <div className='flex flex-none flex-col overflow-hidden border-green-200 border-r4 w-80 m-2 box-border bg-green-200 rounded-md shadow-md'
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}>
 
-            {props.children}
+                    <div className='flex justify-between mb-1'>
+                        <div className='w-5/6 pl-1'>
+                            {edit ?
+                                <input type='text' value={editedName} onChange={event => setEditedName(event.target.value)}
+                                    ref={inputRef}
+                                    className='text-lg font-medium w-full h-7 px-1 -mx-1 focus:outline-none rounded-sm shadow-inner bg-green-100' /> :
+                                <p className='text-lg truncate font-medium'>
+                                    {props.name}
+                                </p>}
+                        </div>
 
-        </div>
+                        <div>
+                            {edit ?
+                                <button onClick={onStopEdit} ref={editRef}
+                                    className='focus:outline-none'>
+                                    <SaveAltIcon fontSize='small' className={iconStyle} />
+                                </button> :
+                                <button onClick={() => setEdit(true)}
+                                    className='focus:outline-none'>
+                                    <EditIcon fontSize='small' className={iconStyle} />
+                                </button>}
+                            {edit ?
+                                <button onClick={onCancelEdit}
+                                    className='focus:outline-none'>
+                                    <CancelIcon fontSize='small' className={iconStyle} />
+                                </button> :
+                                <button onClick={() => props.onDelete(props.id)}
+                                    className='focus:outline-none'>
+                                    <DeleteIcon fontSize='small' className={iconStyle} />
+                                </button>}
+                        </div>
+                    </div>
+
+                    {props.children}
+
+                </div>)}
+                
+        </Draggable>
     );
 }

@@ -412,6 +412,7 @@ export default function MainView(props: ITopicsProps) {
         newLocalTopics.set(sTopicId, { ...sTopic, noteOrder: sNewNoteOrder });
         newLocalTopics.set(dTopicId, { ...dTopic, noteOrder: dNewNoteOrder });
 
+        // TODO: Rework moving note into a single API call
         const apiResponse = axios.patch(`/api/note/move/${noteId}`, {
             topicId: dTopicId,
             noteId: noteId
@@ -604,12 +605,14 @@ export default function MainView(props: ITopicsProps) {
         [localNotes, selectedNote, selectNote, editNote, deleteNote]
     );
 
-    /** Array of Topic components with their Note children and added Draggable/Droppable functionality*/
+    /** Array of Topic components with their Note children, 
+     * incl. Draggable/Droppable functionality
+    */
     const topicAndNoteArray = useMemo(() => {
         if (!localTopics || !noteMap || !topicOrder) return null;
 
         /**
-         * A Map object with a Topic component for each topic, 
+         * A Map object of Topic components, 
          * incl. Note children
          */
         const topicMap = new Map<number, JSX.Element>();
@@ -638,20 +641,21 @@ export default function MainView(props: ITopicsProps) {
                 );
             });
 
-            // Set a Topic component in Map with some added Droppable functionality for note
+            // Set a Topic component in Map with added Droppable functionality
             topicMap.set(topicId,
                 <Topic key={topicId}
                     id={topicId}
                     name={topic.name}
                     onEdit={renameTopic}
-                    onDelete={deleteTopic} >
+                    onDelete={deleteTopic}
+                    index={topicOrder.indexOf(topicId)} >
 
                     <CreateNote key={topicId} addNote={createNote} topicId={topicId} />
 
                     <Droppable key={'drop' + topicId} droppableId={String(topicId)} type='NOTE'>
                         {(provided, snapshot) => (
 
-                            <div className='overflow-y-scroll h-full bar-sm'
+                            <div className='overflow-y-scroll overflow-x-hidden h-full bar-sm'
                                 ref={provided.innerRef}
                                 {...provided.droppableProps} >
 
@@ -665,24 +669,10 @@ export default function MainView(props: ITopicsProps) {
         });
 
         /**
-         * Array of Topic components with Note children,
-         * incl. added Draggable functionality
+         * Array of Topic components in the right order
          */
-        const topicArray: JSX.Element[] = topicOrder.map((topicId, ind) => {
-            return (
-                <Draggable
-                    key={'drag' + topicId}
-                    draggableId={String(topicId)}
-                    index={ind} >
-                    {(provided, snapshot) => (
-                        <div className='flex flex-none flex-col overflow-hidden border-green-200 border-r4 w-80 m-2 box-border bg-green-200 rounded-md shadow-md'
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}>
-                            {topicMap.get(topicId)}
-                        </div>)}
-                </Draggable>
-            )
+        const topicArray: JSX.Element[] = topicOrder.map((topicId) => {
+            return topicMap.get(topicId) ?? <></>;
         });
 
         return topicArray;
@@ -700,7 +690,7 @@ export default function MainView(props: ITopicsProps) {
 
                 <Droppable key='topics' droppableId='topics' type='TOPIC' direction='horizontal'>
                     {(provided, snapshot) => (
-                        <div className='flex h-full flex-nowrap overflow-x-scroll flex-row px-2 pb-2'
+                        <div className='flex h-full flex-nowrap overflow-x-scroll overflow-y-hidden flex-row px-2 pb-2'
                             ref={provided.innerRef}
                             {...provided.droppableProps}>
 
