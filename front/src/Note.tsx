@@ -87,7 +87,8 @@ export default function Note(props: INoteProps) {
     );
 
     return (
-        <form className='flex shadow rounded-md p-1 hover:bg-green-300 my-1 mr-1'
+        <form className={props.selected ? 'flex p-1 shadow rounded-md my-1 mr-1' :
+            'flex p-1 shadow rounded-md my-1 mr-1 hover:bg-green-300'}
             onSubmit={e => {
                 e.preventDefault();
                 stopEdit();
@@ -97,13 +98,13 @@ export default function Note(props: INoteProps) {
                 {edit &&
                     <TextareaAutosize className='w-full align-middle border-none resize-none focus:outline-none rounded-sm bg-green-200'
                         ref={inputRef}
-                        value={editedText} onChange={event => setEditedText(event.target.value)} 
+                        value={editedText} onChange={event => setEditedText(event.target.value)}
                         onKeyPress={e => {
                             if (e.key === 'Enter') {
                                 e.preventDefault();
                                 stopEdit();
                             }
-                        }}/>}
+                        }} />}
 
                 {!edit &&
                     (props.selected ?
@@ -181,5 +182,5 @@ export default function Note(props: INoteProps) {
             </div>
 
         </form>
-    )
+    );
 }

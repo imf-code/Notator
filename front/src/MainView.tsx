@@ -603,9 +603,7 @@ export default function MainView(props: ITopicsProps) {
         [localNotes, selectedNote, selectNote, editNote, deleteNote]
     );
 
-    /** Array of Topic components with their Note children, 
-     * incl. Draggable/Droppable functionality
-    */
+    /** Array of Topic components with their Note children */
     const topicAndNoteArray = useMemo(() => {
         if (!localTopics || !noteMap || !topicOrder) return null;
 
@@ -627,9 +625,10 @@ export default function MainView(props: ITopicsProps) {
                     <Draggable
                         key={noteId}
                         draggableId={String(noteId)}
-                        index={ind} >
+                        index={ind}
+                    >
                         {(provided, snapshot) => (
-                            <div
+                            <div className={snapshot.isDragging ? 'p-0 rounded-md bg-green-300' : ''}
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}>
