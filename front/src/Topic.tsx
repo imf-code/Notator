@@ -88,10 +88,10 @@ export default function Topic(props: ITopicProps) {
             {(provided, snapshot) => (
                 <div className='flex flex-none flex-col overflow-hidden border-green-200 border-r4 w-80 m-2 box-border bg-green-200 rounded-md shadow-md'
                     ref={provided.innerRef}
-                    {...provided.draggableProps}
-                    {...provided.dragHandleProps}>
+                    {...provided.draggableProps} >
 
-                    <div className='flex justify-between mb-1'>
+                    <div className='flex justify-between mb-1'
+                        {...provided.dragHandleProps} >
                         <div className='w-5/6 pl-1'>
                             {edit ?
                                 <input type='text' value={editedName} onChange={event => setEditedName(event.target.value)}
@@ -127,7 +127,7 @@ export default function Topic(props: ITopicProps) {
                     {props.children}
 
                 </div>)}
-                
+
         </Draggable>
     );
 }
