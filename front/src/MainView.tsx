@@ -105,8 +105,8 @@ export default function MainView(props: ITopicsProps) {
         const newTopics = new Map(localTopics);
         newTopics.set(newId, { name: name, noteOrder: [] });
 
-        setTopicOrder([newId, ...topicOrder]);
         setLocalTopics(newTopics);
+        setTopicOrder([newId, ...topicOrder]);
 
         axios.patch(`/api/subject/order/${props.subId}`, {
             order: JSON.stringify([newId, ...topicOrder])
@@ -181,19 +181,17 @@ export default function MainView(props: ITopicsProps) {
                 return undefined;
             });
 
+        const newTopicOrder = topicOrder.filter(topic => topic !== topicId);
         const newTopics = new Map(localTopics);
         newTopics.delete(topicId);
 
-        const deletedTopic = await apiResponse;
         setLocalTopics(newTopics);
+        setTopicOrder(newTopicOrder);
+
+        const deletedTopic = await apiResponse;
 
         if (!deletedTopic) return;
         else if (deletedTopic === topicId) {
-
-            const newTopicOrder = topicOrder.filter(topic => topic !== topicId);
-
-            setTopicOrder(newTopicOrder);
-
             axios.patch(`/api/subject/order/${props.subId}`, {
                 order: JSON.stringify(newTopicOrder)
             }).then(resp => {
