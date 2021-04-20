@@ -89,113 +89,123 @@ export default function Note(props: INoteProps) {
         [props.text]
     );
 
+    function dragStyles(isDragging: boolean) {
+        if (!isDragging) {
+            return props.selected ? 'flex p-1 shadow rounder-md my-1 mr-1' :
+                'flex p-1 shadow rounded-md my-1 mr-1 hover:bg-green-300';
+        }
+        else {
+            return props.selected ? 'flex p-1 bg-green-200 border-green-300 shadow rounded-md my-1 mr-1' :
+                'flex p-1 bg-green-300 shadow rounded-md my-1 mr-1';
+        }
+    }
+
     return (
         <Draggable
             key={props.id}
             draggableId={String(props.id)}
-            index={props.index}
-        >
+            index={props.index}>
+
             {(provided, snapshot) => (
-                <div className={snapshot.isDragging ? 'p-0 rounded-md bg-green-300' : ''}
+                <form className={dragStyles(snapshot.isDragging)}
                     ref={provided.innerRef}
                     {...provided.draggableProps}
-                    {...provided.dragHandleProps}>
-                    <form className={props.selected ? 'flex p-1 shadow rounded-md my-1 mr-1' :
-                        'flex p-1 shadow rounded-md my-1 mr-1 hover:bg-green-300'}
-                        onSubmit={e => {
-                            e.preventDefault();
-                            stopEdit();
-                        }}>
+                    {...provided.dragHandleProps}
+                    onSubmit={e => {
+                        e.preventDefault();
+                        stopEdit();
+                    }}>
 
-                        <div className={props.selected ? 'w-full bg-green-200 rounded-sm px-0.5' : 'w-full px-0.5'}>
-                            {edit &&
-                                <TextareaAutosize className='w-full align-middle border-none resize-none focus:outline-none rounded-sm bg-green-200'
-                                    ref={inputRef}
-                                    value={editedText} onChange={event => setEditedText(event.target.value)}
-                                    onKeyPress={e => {
-                                        if (e.key === 'Enter') {
-                                            e.preventDefault();
-                                            stopEdit();
-                                        }
-                                    }} />}
+                    <div className={props.selected ? 'w-full bg-green-200 rounded-sm px-0.5' : 'w-full px-0.5'}>
+                        {edit &&
+                            <TextareaAutosize className='w-full align-middle border-none resize-none focus:outline-none rounded-sm bg-green-200'
+                                ref={inputRef}
+                                value={editedText} onChange={event => setEditedText(event.target.value)}
+                                onKeyPress={e => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        stopEdit();
+                                    }
+                                }} />}
 
-                            {!edit &&
-                                (props.selected ?
-                                    <div className='break-words'>
-                                        {props.text}
-                                    </div> :
-                                    <p className='break-words hover:bg-green-300 hover:rounded-sm' onClick={() => props.setSelected(props.id)}>
-                                        {props.text}
-                                    </p>)}
+                        {!edit &&
+                            (props.selected ?
+                                <div className='break-words'>
+                                    {props.text}
+                                </div> :
+                                <p className='break-words hover:bg-green-300 hover:rounded-sm' onClick={() => props.setSelected(props.id)}>
+                                    {props.text}
+                                </p>)}
 
-                            {(props.selected && !confirmDelete) &&
-                                <div className='flex flex-row flex-grow justify-around w-full text-sm border-t-2 border-green-100'>
+                        {(props.selected && !confirmDelete) &&
+                            <div className='flex flex-row flex-grow justify-around w-full text-sm border-t-2 border-green-100'>
 
-                                    {edit ?
-                                        <label>
-                                            <input type='submit' hidden />
-                                            <div className='underline cursor-pointer w-12 text-center'
-                                                onMouseDown={() => {
-                                                    stopEdit();
-                                                }}>
-                                                Save
-                                </div>
-                                        </label> :
+                                {edit ?
+                                    <label>
+                                        <input type='submit' hidden />
                                         <div className='underline cursor-pointer w-12 text-center'
-                                            onClick={() => setEdit(true)}>
-                                            Edit
-                            </div>}
-
-                                    {edit ?
-                                        <div className='underline cursor-pointer w-12 text-center'
-                                            onClick={cancelEdit}>
-                                            Cancel
-                            </div> :
-                                        <div className='underline cursor-pointer w-12 text-center'
-                                            onClick={() => {
-                                                setConfirmDelete(true);
+                                            onMouseDown={() => {
+                                                stopEdit();
                                             }}>
-                                            Delete
+                                            Save
+                                </div>
+                                    </label> :
+                                    <div className='underline cursor-pointer w-12 text-center'
+                                        onClick={() => setEdit(true)}>
+                                        Edit
                             </div>}
 
+                                {edit ?
+                                    <div className='underline cursor-pointer w-12 text-center'
+                                        onClick={cancelEdit}>
+                                        Cancel
+                            </div> :
                                     <div className='underline cursor-pointer w-12 text-center'
                                         onClick={() => {
-                                            if (edit) cancelEdit();
-                                            props.setSelected(props.id);
+                                            setConfirmDelete(true);
                                         }}>
-                                        Close
-                        </div>
-                                </div>}
-
-                            {(props.selected && confirmDelete) &&
-                                <div className='flex flex-row justify-around w-full text-sm border-t-2 border-green-100'>
-                                    <div className='underline cursor-pointer w-12 text-center'
-                                        onClick={() => {
-                                            if (!deleteDisabledRef.current) {
-                                                props.onDelete(props.id);
-                                                return;
-                                            }
-                                            else return;
-                                        }}>
-                                        Yes
-                        </div>
-
-                                    <div className='w-12 text-center'>
                                         Delete
+                            </div>}
+
+                                <div className='underline cursor-pointer w-12 text-center'
+                                    onClick={() => {
+                                        if (edit) cancelEdit();
+                                        props.setSelected(props.id);
+                                    }}>
+                                    Close
+                        </div>
+                            </div>}
+
+                        {(props.selected && confirmDelete) &&
+                            <div className='flex flex-row justify-around w-full text-sm border-t-2 border-green-100'>
+                                <div className='underline cursor-pointer w-12 text-center'
+                                    onClick={() => {
+                                        if (!deleteDisabledRef.current) {
+                                            props.onDelete(props.id);
+                                            return;
+                                        }
+                                        else return;
+                                    }}>
+                                    Yes
                         </div>
 
-                                    <div className='underline cursor-pointer w-12 text-center'
-                                        onClick={() => {
-                                            setConfirmDelete(false);
-                                        }}>
-                                        No
+                                <div className='w-12 text-center'>
+                                    Delete
+                        </div>
+
+                                <div className='underline cursor-pointer w-12 text-center'
+                                    onClick={() => {
+                                        setConfirmDelete(false);
+                                    }}>
+                                    No
                             </div>
-                                </div>}
+                            </div>}
 
-                        </div>
+                    </div>
 
-                    </form>
-                </div>)}
+                </form>
+            )}
+
         </Draggable>
     );
 }
