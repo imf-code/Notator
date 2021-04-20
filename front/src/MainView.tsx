@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, DropResult } from 'react-beautiful-dnd';
 
 import { INote, ISubject, ITopic } from './Interfaces';
 import Topic from './Topic';
@@ -578,74 +578,37 @@ export default function MainView(props: ITopicsProps) {
         [selectedNote]
     );
 
-    /**
-     * A Map object with a Note component for each note
-     */
-    const noteMap = useMemo(() => {
-        if (!localNotes) return null;
-
-        const elementMap = new Map<number, JSX.Element>();
-
-        localNotes.forEach(note => {
-            const newElement =
-                <Note key={note.id}
-                    selected={note.id === selectedNote}
-                    setSelected={selectNote}
-                    onEdit={editNote}
-                    onDelete={deleteNote}
-                    {...note} />
-
-            elementMap.set(note.id, newElement);
-        });
-
-        return elementMap;
-    },
-        [localNotes, selectedNote, selectNote, editNote, deleteNote]
-    );
-
-    /** Array of Topic components with their Note children */
+    /** Array of Topic components with their Note children, ready for rendering */
     const topicAndNoteArray = useMemo(() => {
-        if (!localTopics || !noteMap || !topicOrder) return null;
+        if (!localTopics || !topicOrder || !localNotes) return null;
 
-        /**
-         * A Map object of Topic components, 
-         * incl. Note children
-         */
-        const topicMap = new Map<number, JSX.Element>();
+        return topicOrder.map((topicId, topicInd) => {
+            
+            const topic = localTopics.get(topicId);
+            if (!topic) return <></>;
 
-        // Iterate through each topic
-        localTopics.forEach((topic, topicId) => {
+            const orderedNoteArray: JSX.Element[] = topic.noteOrder.map((noteId, noteInd) => { 
+                const note = localNotes.get(noteId);
 
-            /**
-             * Array of Note components with added Draggable functionality,
-             * in correct order
-             */
-            const orderedNoteArray: JSX.Element[] = topic.noteOrder.map((noteId, ind) => {
-                return (
-                    <Draggable
-                        key={noteId}
-                        draggableId={String(noteId)}
-                        index={ind}
-                    >
-                        {(provided, snapshot) => (
-                            <div className={snapshot.isDragging ? 'p-0 rounded-md bg-green-300' : ''}
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}>
-                                {noteMap.get(noteId)}
-                            </div>)}
-                    </Draggable>
+                if (!note) return <></>;
+                else return (
+                    <Note key={note.id}
+                        index={noteInd}
+                        selected={note.id === selectedNote}
+                        setSelected={selectNote}
+                        onEdit={editNote}
+                        onDelete={deleteNote}
+                        {...note} />
                 );
             });
 
-            // Set a Topic component in Map with added Droppable functionality
-            topicMap.set(topicId,
+            return (
                 <Topic key={topicId}
                     id={topicId}
                     name={topic.name}
                     onEdit={renameTopic}
                     onDelete={deleteTopic}
-                    index={topicOrder.indexOf(topicId)} >
+                    index={topicInd} >
 
                     <CreateNote key={topicId} addNote={createNote} topicId={topicId} />
 
@@ -664,17 +627,9 @@ export default function MainView(props: ITopicsProps) {
                 </Topic>
             );
         });
-
-        /**
-         * Array of Topic components in the right order
-         */
-        const topicArray: JSX.Element[] = topicOrder.map((topicId) => {
-            return topicMap.get(topicId) ?? <></>;
-        });
-
-        return topicArray;
     },
-        [localTopics, topicOrder, noteMap, deleteTopic, renameTopic, createNote]
+        [localTopics, topicOrder, deleteTopic, renameTopic,
+            createNote, localNotes, selectedNote, selectNote, editNote, deleteNote]
     );
 
     return (
