@@ -590,9 +590,9 @@ export default function MainView(props: ITopicsProps) {
             const orderedNoteArray: JSX.Element[] = topic.noteOrder.map((noteId, noteInd) => { 
                 const note = localNotes.get(noteId);
 
-                if (!note) return <></>;
+                if (!note) return <>Error</>;
                 else return (
-                    <Note key={note.id}
+                    <Note key={'note' + note.id}
                         index={noteInd}
                         selected={note.id === selectedNote}
                         setSelected={selectNote}
@@ -603,14 +603,14 @@ export default function MainView(props: ITopicsProps) {
             });
 
             return (
-                <Topic key={topicId}
+                <Topic key={'topic' + topicId}
                     id={topicId}
                     name={topic.name}
                     onEdit={renameTopic}
                     onDelete={deleteTopic}
                     index={topicInd} >
 
-                    <CreateNote key={topicId} addNote={createNote} topicId={topicId} />
+                    <CreateNote key={'create' + topicId} addNote={createNote} topicId={topicId} />
 
                     <Droppable key={'drop' + topicId} droppableId={String(topicId)} type='NOTE'>
                         {(provided, snapshot) => (

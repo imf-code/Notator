@@ -102,7 +102,6 @@ export default function Note(props: INoteProps) {
 
     return (
         <Draggable
-            key={props.id}
             draggableId={String(props.id)}
             index={props.index}>
 
