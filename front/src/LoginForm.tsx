@@ -106,7 +106,7 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
                     Welcome to Notator
                 </p>
                 <p className='float-right text-gray-600 text-sm'>
-                    ver. 0.8
+                    ver. 0.9
                 </p>
                 <form onSubmit={event => {
                     event.preventDefault();
@@ -131,7 +131,7 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
                     <div className='flex flex-row'>
                         <input className='flex-auto bg-green-200 focus:outline-none hover:bg-green-400 shadow-md rounded-sm py-0.5 my-2 cursor-pointer'
                             type='submit' value='Login' ref={loginRef} />
-                        <input className='flex-auto bg-green-200 focus:outline-none hover:bg-green-400 shadow-md rounded-sm py-0.5 my-2 ml-1'
+                        <input className='flex-auto bg-green-200 focus:outline-none hover:bg-green-400 shadow-md rounded-sm py-0.5 my-2 ml-1 cursor-pointer'
                             type='button' onClick={() => onSignup(username, password)} ref={signupRef} value='Signup' />
                     </div>
                 </form>
