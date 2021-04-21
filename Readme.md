@@ -82,4 +82,4 @@ To enable SSL on a Postgres server you need to:
 * Postgres
 
 # Known issues
-* Autoscrolling in react-beautiful-dnd does not support the current setup. Nothing should be broken but fixing the warnings will require quite a bit of rewriting, so it is what it is for now.
+* Autoscrolling in react-beautiful-dnd does not support the current setup. Everything should still work but fixing the warnings will require quite a bit of rewriting, so it is what it is for now.
