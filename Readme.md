@@ -4,7 +4,7 @@ Notator is a post-it note application with secure signup/login and the ability t
 Note: The app is still in development and therefore this setup guide relates only to setting up a development environment.
 
 ## SSL
-The app uses HTTPS to communicate between front, back and database. To enable it in a development environment the following certificates must be added to the project folders:
+The app uses SSL encryption to communicate between front, back and database. To enable it in a development environment the following certificates must be added to the project folders:
 
 ``` javascript
 // in ./back/
@@ -80,3 +80,6 @@ To enable SSL on a Postgres server you need to:
 * Express
 * Typeorm
 * Postgres
+
+# Known issues
+* Autoscrolling in react-beautiful-dnd does not support the current setup. Nothing should be broken but fixing the warnings will require quite a bit of rewriting, so it is what it is for now.
