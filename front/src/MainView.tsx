@@ -583,14 +583,14 @@ export default function MainView(props: ITopicsProps) {
         if (!localTopics || !topicOrder || !localNotes) return null;
 
         return topicOrder.map((topicId, topicInd) => {
-            
+
             const topic = localTopics.get(topicId);
             if (!topic) return <></>;
 
-            const orderedNoteArray: JSX.Element[] = topic.noteOrder.map((noteId, noteInd) => { 
+            const orderedNoteArray: JSX.Element[] = topic.noteOrder.map((noteId, noteInd) => {
                 const note = localNotes.get(noteId);
 
-                if (!note) return <>Error</>;
+                if (!note) return <div key={'error' + noteId}>Error</div>;
                 else return (
                     <Note key={'note' + note.id}
                         index={noteInd}
