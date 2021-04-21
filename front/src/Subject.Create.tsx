@@ -47,7 +47,7 @@ export default function CreateSubject(props: ICreateSubjectProps) {
                 onChange={(event) => setNewSubject(event.target.value)}
             />
 
-            <HeaderFormButton type='submit' value='Create' />
+            <HeaderFormButton type='submit' value='Save' />
 
         </form>
     );

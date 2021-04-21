@@ -20,6 +20,7 @@ export default function Subjects(props: ISubjectsProps) {
     const [subject, setSubject] = useState<ISubject | undefined>(undefined);
     const [edit, setEdit] = useState<boolean>(false);
     const [create, setCreate] = useState<boolean>(false);
+    const [deleteConfirm, setDeleteConfirm] = useState<boolean>(false);
 
     // Get list of subjects from API
     useEffect(() => {
@@ -223,17 +224,27 @@ export default function Subjects(props: ISubjectsProps) {
             {!edit &&
                 <HeaderButton
                     onClick={() => setCreate(!create)}>
-                    {create ? 'Cancel' : 'Add'}
+                    {create ? 'Cancel' : 'Create'}
                 </HeaderButton>}
 
             {((!create && !edit)) &&
-                <HeaderButton onClick={() => setEdit(true)} disabled={typeof subjectId === 'number' ? false : true}>
+                <HeaderButton onClick={() => setEdit(true)} disabled={!(typeof subjectId === 'number')}>
                     Edit
                 </HeaderButton>}
 
-            <HeaderButton onClick={() => deleteSubject(subjectId)}>
+            <HeaderButton onClick={() => setDeleteConfirm(true)} disabled={!(typeof subjectId === 'number')}>
                 Delete
             </HeaderButton>
+
+            {deleteConfirm &&
+                <div className='flex flex-nowrap'>
+                    &nbsp;Are you sure?&nbsp;
+                    <div className='underline cursor-pointer'
+                        onClick={() => deleteSubject(subjectId)}>Yes</div>
+                    &nbsp;-&nbsp;
+                    <div className='underline cursor-pointer'
+                        onClick={() => setDeleteConfirm(false)}>Cancel</div>
+                </div>}
         </div >
     );
 }
