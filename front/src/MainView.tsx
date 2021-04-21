@@ -77,7 +77,6 @@ export default function MainView(props: ITopicsProps) {
                 topics: newTopics,
                 topicOrder: newTopicOrder
             });
-            // setSubId(props.subId);
 
         })();
     },
