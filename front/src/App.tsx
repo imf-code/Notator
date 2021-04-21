@@ -6,12 +6,14 @@ import Subjects from './Subjects';
 import { IUser } from './Interfaces';
 import MainView from './MainView';
 import Header from './Header';
+import { CircularProgress, createMuiTheme, ThemeProvider } from '@material-ui/core';
 
 function App() {
 
   const [userData, setUserData] = useState<IUser | undefined>(undefined);
   const [loginStatus, setLoginStatus] = useState<boolean>(false);
   const [currentSubject, setCurrentSubject] = useState<number | undefined>(undefined);
+  const [loading, setLoading] = useState<boolean>(true);
 
   // Attempt to get user data using existing session cookie
   useEffect(() => {
@@ -20,15 +22,20 @@ function App() {
         if (resp.status === 200) {
           setLoginStatus(true);
           setUserData(resp.data);
+          setLoading(false);
         }
       })
       .catch(err => {
-        if (err.response.status === 401) return;
+        if (err.response.status === 401) {
+          setLoading(false);
+          return;
+        }
         else {
           console.log(err);
           alert('There was a problem connecting to the note server. The service may be down. Please try again later.');
+          setLoading(false);
         }
-      })
+      });
   },
     []
   );
@@ -62,11 +69,24 @@ function App() {
     [loginStatus, userData]
   );
 
+  const theme = createMuiTheme({
+    palette: {
+      primary: {
+        main: '#047857',
+      }
+    },
+  })
+
   return (
     <div className='flex flex-col h-screen bg-yellow-50 overflow-hidden'>
+      <ThemeProvider theme={theme} >
+        {loading && <div className='flex h-96 items-center justify-center'>
+          <CircularProgress />
+        </div>}
+      </ThemeProvider>
 
       {!loginStatus ?
-        <LoginForm {...{ setLoginStatus }} /> :
+        (!loading && <LoginForm {...{ setLoginStatus }} />) :
         <Header name={userData?.name}>
           <Subjects {...{ setCurrentSubject }} />
           <Logout {...{ setLoginStatus }} />
