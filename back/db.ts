@@ -136,7 +136,7 @@ export default class Database {
     };
 
     /**
-     * Find all subjects for a user by ID.
+     * Find all subjects for a user by ID
      * @param userId User ID
      */
     public async findSubjects(userId: string) {
@@ -213,7 +213,7 @@ export default class Database {
 
     /**
      * **DEPRECATED**
-     * Find a topic and associated notes by ID.
+     * Find a topic and associated notes by ID
      * @param userId User ID
      * @param subId Subject ID
      */
@@ -233,7 +233,7 @@ export default class Database {
     }
 
     /**
-     * Find all topics and notes belonging to an user under given subject.
+     * Find all topics and notes belonging to an user under given subject
      * @param userId User ID
      * @param subId Subject ID
      */
@@ -275,10 +275,10 @@ export default class Database {
     }
 
     /**
-     * Update topic order string.
+     * Update topic order string
      * @param userId User ID
      * @param subId Subject ID
-     * @param newOrder String representing order of topics under given subject.
+     * @param newOrder String representing order of topics under given subject
      */
     public async reOrderTopics(userId: string, subId: number, newOrder: string) {
 
@@ -359,7 +359,7 @@ export default class Database {
      * Update note order string
      * @param userId User ID
      * @param topicId Topic ID
-     * @param newOrder String representing the order of notes under given topic.
+     * @param newOrder String representing the order of notes under given topic
      */
     public async reOrderNotes(userId: string, topicId: number, newOrder: string) {
 
@@ -377,10 +377,10 @@ export default class Database {
     }
 
     /**
-     * Update the note text.
+     * Update the note text
      * @param userId User ID
      * @param noteId Note ID
-     * @param newNote New text for the note.
+     * @param newNote New text for the note
      */
     public async updateNote(userId: string, noteId: number, newNote: string) {
 
