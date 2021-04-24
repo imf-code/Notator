@@ -115,10 +115,10 @@ const httpsPort = 443;
             resave: false,
             store: new TypeormStore({
                 cleanupLimit: 2,
-                ttl: 3600000
+                ttl: 31557600000        // 1y
             }).connect(sessionRepo),
             cookie: {
-                maxAge: 3600000,
+                maxAge: 31557600000,    // 1y
                 httpOnly: true,
                 secure: true
             },
@@ -137,8 +137,7 @@ const httpsPort = 443;
         next();
     });
 
-    // Routing    
-    // app.use(express.static(path.join(__dirname, 'test'))); // DEV
+    // Routing
     app.use('/api', routeApi());
 
     // Start server
