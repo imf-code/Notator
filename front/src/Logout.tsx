@@ -16,10 +16,10 @@ export default function Logout(props: ILogout) {
                             if (resp.status === 200) {
                                 if (props.setLoginStatus) props.setLoginStatus(false);
                             }
-                            else alert('Something went worng with your logout attempt. Please try again later.');
+                            else throw new Error();
                         })
                         .catch(err => {
-                            if (err.response.status === 400) alert(err.response.data);
+                            if (err.response && err.response.status === 400) alert(err.response.data);
                             else alert('Something went worng with your logout attempt. Please try again later.');
                         });
                 }}>

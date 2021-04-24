@@ -18,6 +18,7 @@ export default function Subjects(props: ISubjectsProps) {
     const [localSubjects, setLocalSubjects] = useState<ISubject[] | undefined>(undefined);
     const [subjectId, setSubjectId] = useState<number | undefined>(undefined);
     const [subject, setSubject] = useState<ISubject | undefined>(undefined);
+
     const [edit, setEdit] = useState<boolean>(false);
     const [create, setCreate] = useState<boolean>(false);
     const [deleteConfirm, setDeleteConfirm] = useState<boolean>(false);
@@ -29,10 +30,11 @@ export default function Subjects(props: ISubjectsProps) {
                 if (resp.status === 200) {
                     setLocalSubjects(resp.data);
                 }
+                else throw new Error();
             })
             .catch(err => {
                 console.log(err);
-                alert('There was a problem retrieving your subject list. Please try again later.');
+                alert('There was a problem retrieving your subject list. The service may be down. Please try again later.');
             });
     },
         []
@@ -46,7 +48,7 @@ export default function Subjects(props: ISubjectsProps) {
         [subjectId, props]
     );
 
-    // Find and separate currently selected subject (for internal use)
+    // Find the currently selected subject (for internal use in this component only)
     useEffect(() => {
         if (!subjectId || !localSubjects || !localSubjects.length) return;
 
@@ -60,10 +62,18 @@ export default function Subjects(props: ISubjectsProps) {
         [subjectId, localSubjects]
     );
 
+    // Cancel editing
     function cancelEdit() {
         setEdit(false);
         return;
     }
+
+    // Cancel delete confirmation when subject is changed
+    useEffect(() => {
+        setDeleteConfirm(false);
+    },
+        [subjectId]
+    );
 
     /**
      * Create a new Subject
@@ -82,16 +92,15 @@ export default function Subjects(props: ISubjectsProps) {
             else throw new Error();
         }).catch(err => {
             console.log(err);
-            if (err.response.status === 400) alert(err.response.data);
+            if (err.response && err.response.status === 400) alert(err.response.data);
             else alert('There was an error while attempting to create a new subject. Please try again later.');
-            return null;
+            return undefined;
         });
 
 
         const newId = await apiResponse;
 
-        if (newId === null) return;
-        else if (newId) {
+        if (typeof newId === 'number') {
 
             const newSubject: ISubject = {
                 id: newId,
@@ -101,9 +110,10 @@ export default function Subjects(props: ISubjectsProps) {
             }
 
             setCreate(false);
-            setLocalSubjects([newSubject, ...localSubjects,]);
+            setLocalSubjects([newSubject, ...localSubjects]);
             setSubjectId(newId);
         }
+        else if (newId === undefined) return;
         else alert('Something went wrong. Please try refreshing the page.');
     }
 
@@ -113,7 +123,7 @@ export default function Subjects(props: ISubjectsProps) {
      * @param newName New name for the subject
      */
     async function renameSubject(subId: number, newName: string) {
-        if (!localSubjects) {
+        if (!localSubjects || !subId) {
             alert('Something went wrong. Please try refreshing the page.');
             return;
         }
@@ -127,22 +137,21 @@ export default function Subjects(props: ISubjectsProps) {
             }
         }).catch(err => {
             console.log(err);
-            if (err.response.status === 400) alert(err.response.data);
+            if (err.response && err.response.status === 400) alert(err.response.data);
             else alert('There was an error while attempting to rename the subject. Please try again later.');
-            return null;
+            return undefined;
         });
 
         const newLocalSubjects = localSubjects.map(subject => {
             return subject.id === subId ? { ...subject, name: newName } : subject;
         });
 
+        setLocalSubjects(newLocalSubjects);
+        setEdit(false);
+
         const editedId = await apiResponse;
 
-        if (editedId === null) return;
-        else if (editedId === subId) {
-            setLocalSubjects(newLocalSubjects);
-            setEdit(false);
-        }
+        if (editedId === subId || editedId === undefined) return;
         else alert('Something went wrong. Please try refreshing the page.');
     }
 
@@ -151,11 +160,10 @@ export default function Subjects(props: ISubjectsProps) {
      * @param subId ID of subject to be deleted
      */
     async function deleteSubject(subId: number | undefined) {
-        if (!localSubjects) {
+        if (!localSubjects || !subId) {
             alert('Something went wrong. Please try refreshing the page.');
             return;
         }
-        if (!subId) return;
 
         const apiResponse = axios.delete(`/api/subject/${subId}`)
             .then(resp => {
@@ -163,22 +171,21 @@ export default function Subjects(props: ISubjectsProps) {
                 else throw new Error();
             }).catch(err => {
                 console.log(err);
-                if (err.response.status === 400) alert(err.response.data);
+                if (err.response && err.response.status === 400) alert(err.response.data);
                 else alert('There was an error while attempting to delete the subject. Please try again later.');
-                return null;
+                return undefined;
             });
 
         const newLocalSubjects = localSubjects.filter(subject => {
             return subject.id !== subId;
         });
 
+        setLocalSubjects(newLocalSubjects);
+        setSubjectId(undefined);
+
         const deletedId = await apiResponse;
 
-        if (deletedId === null) return;
-        else if (deletedId === subId) {
-            setLocalSubjects(newLocalSubjects);
-            setSubjectId(undefined);
-        }
+        if (deletedId === subId || deletedId === undefined) return;
         else alert('Something went wrong. Please try refreshing the page.');
     }
 
@@ -194,7 +201,6 @@ export default function Subjects(props: ISubjectsProps) {
     },
         [localSubjects]
     );
-
 
     return (
         <div className='flex flex-nowrap justify-start w-3/5 h-auto'>
@@ -223,16 +229,21 @@ export default function Subjects(props: ISubjectsProps) {
 
             {!edit &&
                 <HeaderButton
-                    onClick={() => setCreate(!create)}>
+                    onClick={() => setCreate(!create)}
+                    disabled={!localSubjects}>
                     {create ? 'Cancel' : 'Create'}
                 </HeaderButton>}
 
-            {((!create && !edit)) &&
-                <HeaderButton onClick={() => setEdit(true)} disabled={!(typeof subjectId === 'number')}>
+            {(!create && !edit) &&
+                <HeaderButton
+                    onClick={() => setEdit(true)}
+                    disabled={!(typeof subjectId === 'number')}>
                     Edit
                 </HeaderButton>}
 
-            <HeaderButton onClick={() => setDeleteConfirm(true)} disabled={!(typeof subjectId === 'number')}>
+            <HeaderButton
+                onClick={() => setDeleteConfirm(true)}
+                disabled={!(typeof subjectId === 'number')}>
                 Delete
             </HeaderButton>
 
