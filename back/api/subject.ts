@@ -112,7 +112,7 @@ export default (): Router => {
         }
 
         (async () => {
-            const update = await db.reOrderTopics(userId, subId, order);
+            const update = await db.reorderTopics(userId, subId, order);
 
             update.affected ?
                 res.status(200).send({ id: subId }) :
@@ -175,7 +175,7 @@ export default (): Router => {
         }
 
         (async () => {
-            const result = await db.delSubject(userId, subId);
+            const result = await db.deleteSubject(userId, subId);
 
             result.affected ?
                 res.status(200).send({ id: subId }) :

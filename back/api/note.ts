@@ -149,7 +149,7 @@ export default (): Router => {
         }
 
         (async () => {
-            const result = await db.delNote(userId, noteId);
+            const result = await db.deleteNote(userId, noteId);
 
             result.affected ?
                 res.status(200).send({ id: noteId }) :

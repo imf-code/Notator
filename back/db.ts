@@ -198,7 +198,7 @@ export default class Database {
      * @param userId User ID
      * @param subId Subject ID
      */
-    public async delSubject(userId: string, subId: number) {
+    public async deleteSubject(userId: string, subId: number) {
 
         return await getConnection()
             .createQueryBuilder()
@@ -280,7 +280,7 @@ export default class Database {
      * @param subId Subject ID
      * @param newOrder String representing order of topics under given subject
      */
-    public async reOrderTopics(userId: string, subId: number, newOrder: string) {
+    public async reorderTopics(userId: string, subId: number, newOrder: string) {
 
         return await getConnection()
             .createQueryBuilder()
@@ -321,7 +321,7 @@ export default class Database {
      * @param userId User ID
      * @param topicId Topic ID
      */
-    public async delTopic(userId: string, topicId: number) {
+    public async deleteTopic(userId: string, topicId: number) {
 
         return await getConnection()
             .createQueryBuilder()
@@ -361,7 +361,7 @@ export default class Database {
      * @param topicId Topic ID
      * @param newOrder String representing the order of notes under given topic
      */
-    public async reOrderNotes(userId: string, topicId: number, newOrder: string) {
+    public async reorderNotes(userId: string, topicId: number, newOrder: string) {
 
         return await getConnection()
             .createQueryBuilder()
@@ -432,7 +432,7 @@ export default class Database {
      * @param userId User ID
      * @param noteId Note ID
      */
-    public async delNote(userId: string, noteId: number) {
+    public async deleteNote(userId: string, noteId: number) {
 
         return await getConnection()
             .createQueryBuilder()
