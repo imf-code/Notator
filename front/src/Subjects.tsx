@@ -88,7 +88,7 @@ export default function Subjects(props: ISubjectsProps) {
         const apiResponse = axios.post('/api/subject', {
             subject: name
         }).then(resp => {
-            if (resp.status === 201) return resp.data[0].id as number;
+            if (resp.status === 201) return Number(resp.data[0].id);
             else throw new Error();
         }).catch(err => {
             console.log(err);
@@ -100,7 +100,7 @@ export default function Subjects(props: ISubjectsProps) {
 
         const newId = await apiResponse;
 
-        if (typeof newId === 'number') {
+        if (typeof newId === 'number' && !Number.isNaN(newId)) {
 
             const newSubject: ISubject = {
                 id: newId,
