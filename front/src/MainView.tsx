@@ -2,13 +2,13 @@ import axios from 'axios';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DragDropContext, Droppable, DropResult } from 'react-beautiful-dnd';
 
-import { INote, ISubject, ITopic } from './Interfaces';
+import { INote, ISubject } from './Interfaces';
 import Topic from './Topic';
 import CreateTopic from './Topic.Create';
 import Note from './Note';
 import CreateNote from './Note.Create';
 
-interface ITopicsProps {
+interface IMainViewProps {
     /** ID of the parent subject */
     subId: number;
 }
@@ -30,7 +30,7 @@ interface ILocalData {
 }
 
 /** Component for displaying and manipulating topics and the notes under each topic */
-export default function MainView(props: ITopicsProps) {
+export default function MainView(props: IMainViewProps) {
 
     const [localData, setLocalData] = useState<ILocalData>({ notes: undefined, topics: undefined, topicOrder: undefined });
     const [selectedNote, setSelectedNote] = useState<number | undefined>(undefined);
@@ -54,10 +54,10 @@ export default function MainView(props: ITopicsProps) {
                     return undefined;
                 });
 
-            const subject: ISubject | undefined = await apiResponse;
+            const subject = await apiResponse;
             if (!subject) return;
 
-            const topicsAndNotes: ITopic[] | undefined = subject.topics;
+            const topicsAndNotes = subject.topics;
             if (!topicsAndNotes) return;
 
             const newTopics = new Map<number, ITopicWithOrder>();
@@ -97,7 +97,7 @@ export default function MainView(props: ITopicsProps) {
             subId: props.subId,
             topic: name
         }).then(resp => {
-            if (resp.status === 201) return resp.data[0].id as number;
+            if (resp.status === 201) return Number(resp.data[0].id);
             else throw new Error();
         }).catch(err => {
             console.log(err);
@@ -106,7 +106,7 @@ export default function MainView(props: ITopicsProps) {
             return undefined;
         });
 
-        if (!newId) return;
+        if (typeof newId !== 'number' || Number.isNaN(newId)) return;
 
         const newTopics = new Map(localData.topics);
         newTopics.set(newId, { name: name, noteOrder: [] });
@@ -160,7 +160,7 @@ export default function MainView(props: ITopicsProps) {
 
         const newTopics = new Map(localData.topics);
         newTopics.set(topicId, { name: name, noteOrder: oldTopic.noteOrder });
-        setLocalData({...localData, topics: newTopics});
+        setLocalData({ ...localData, topics: newTopics });
 
         const updatedTopic = await apiResponse;
 
@@ -194,7 +194,7 @@ export default function MainView(props: ITopicsProps) {
         const newTopics = new Map(localData.topics);
         newTopics.delete(topicId);
 
-        setLocalData({...localData, topics: newTopics, topicOrder: newTopicOrder});
+        setLocalData({ ...localData, topics: newTopics, topicOrder: newTopicOrder });
 
         const deletedTopic = await apiResponse;
 
@@ -261,7 +261,7 @@ export default function MainView(props: ITopicsProps) {
 
         newTopics.set(topicId, { name: topic.name, noteOrder: [newId, ...topic.noteOrder] });
 
-        setLocalData({...localData, topics: newTopics, notes: newNotes});
+        setLocalData({ ...localData, topics: newTopics, notes: newNotes });
 
         axios.patch(`/api/topic/order/${topicId}`, {
             order: JSON.stringify([newId, ...topic.noteOrder])
@@ -310,7 +310,7 @@ export default function MainView(props: ITopicsProps) {
 
         const newNote = { ...oldNote, text: text } as INoteWithTopic;
         newNotes.set(noteId, newNote);
-        setLocalData({...localData, notes: newNotes});
+        setLocalData({ ...localData, notes: newNotes });
 
         const updatedNote = await apiResponse;
 
@@ -361,7 +361,7 @@ export default function MainView(props: ITopicsProps) {
         const newOrder = topic.noteOrder.filter(note => note !== noteId);
         newTopics.set(removed.topicId, { name: topic.name, noteOrder: newOrder });
 
-        setLocalData({...localData, topics: newTopics, notes: newNotes});
+        setLocalData({ ...localData, topics: newTopics, notes: newNotes });
 
         const deletedNote = await apiResponse;
 
@@ -462,7 +462,7 @@ export default function MainView(props: ITopicsProps) {
         const newNote = { ...oldNote, topicId: dTopicId } as INoteWithTopic;
         newLocalNotes.set(noteId, newNote);
 
-        setLocalData({...localData, notes: newLocalNotes, topics: newLocalTopics});
+        setLocalData({ ...localData, notes: newLocalNotes, topics: newLocalTopics });
 
         const movedNote = await apiResponse;
 
@@ -500,7 +500,7 @@ export default function MainView(props: ITopicsProps) {
 
         newTopics.set(topicId, { name: topic.name, noteOrder: newNoteOrder });
 
-        setLocalData({...localData, topics: newTopics});
+        setLocalData({ ...localData, topics: newTopics });
 
         axios.patch(`/api/topic/order/${topicId}`, {
             order: JSON.stringify(newNoteOrder)
@@ -529,7 +529,7 @@ export default function MainView(props: ITopicsProps) {
         const [movingNoteId] = newTopicOrder.splice(startInd, 1);
         newTopicOrder.splice(endInd, 0, movingNoteId);
 
-        setLocalData({...localData, topicOrder: newTopicOrder});
+        setLocalData({ ...localData, topicOrder: newTopicOrder });
 
         axios.patch(`/api/subject/order/${props.subId}`, {
             order: JSON.stringify(newTopicOrder)
@@ -588,7 +588,7 @@ export default function MainView(props: ITopicsProps) {
         if (!localData.topics || !localData.topicOrder || !localData.notes) return null;
         const localTopics = localData.topics;
         const localNotes = localData.notes;
-        
+
         return localData.topicOrder.map((topicId, topicInd) => {
 
             const topic = localTopics.get(topicId);
