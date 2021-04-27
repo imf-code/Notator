@@ -97,7 +97,7 @@ export default (): Router => {
             res.sendStatus(500);
             return;
         }
-        if (req.body.order === undefined) {
+        if (!req.body.order) {
             res.status(400).send('New order required.');
             return;
         }

@@ -154,6 +154,17 @@ export default class Database {
     }
 
     /**
+     * Find a subject by id
+     * @param subId Subject ID
+     */
+    public async findSubjectById(subId: number) {
+
+        return await getConnection()
+            .getRepository(Subject)
+            .findOne(subId);
+    }
+
+    /**
      * Create new subject
      * @param userId User ID
      * @param subj Name of the new subject
@@ -230,6 +241,17 @@ export default class Database {
                     'notes'
                 ]
             });
+    }
+
+    /**
+     * Find a topic by ID
+     * @param topicId Topic ID
+     */
+    public async findTopicById(topicId: number) {
+
+        return await getConnection()
+            .getRepository(Topic)
+            .findOne(topicId);
     }
 
     /**

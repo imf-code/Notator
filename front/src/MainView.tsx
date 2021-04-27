@@ -49,7 +49,7 @@ export default function MainView(props: IMainViewProps) {
                         return resp.data as ISubject;
                     }
                 }).catch(err => {
-                    console.log(err.response.data);
+                    console.log(err);
                     alert('Something went wrong while retrieving your list of topics. Please try again later.');
                     return undefined;
                 });
@@ -95,7 +95,8 @@ export default function MainView(props: IMainViewProps) {
 
         const newId = await axios.post('/api/topic', {
             subId: props.subId,
-            topic: name
+            topic: name,
+            order: localData.topicOrder
         }).then(resp => {
             if (resp.status === 201) return Number(resp.data[0].id);
             else throw new Error();
@@ -116,17 +117,6 @@ export default function MainView(props: IMainViewProps) {
             topics: newTopics,
             topicOrder: [newId, ...localData.topicOrder]
         });
-
-        axios.patch(`/api/subject/order/${props.subId}`, {
-            order: JSON.stringify([newId, ...localData.topicOrder])
-        }).then(resp => {
-            if (resp.status === 200) return;
-            else throw new Error();
-        }).catch(err => {
-            console.log(err);
-            if (err.response && err.response.status === 400) alert('Something went wrong. Please try refreshing the page.');
-            else alert('Something went wrong. The service may be down. Please try again later.');
-        });
     }
 
     /**
@@ -143,7 +133,7 @@ export default function MainView(props: IMainViewProps) {
         const apiResponse = axios.patch(`/api/topic/${topicId}`, {
             name: name
         }).then(resp => {
-            if (resp.status === 200) return resp.data.id as number;
+            if (resp.status === 200) return Number(resp.data.id);
             else throw new Error();
         }).catch(err => {
             console.log(err);
@@ -164,7 +154,7 @@ export default function MainView(props: IMainViewProps) {
 
         const updatedTopic = await apiResponse;
 
-        if (!updatedTopic || (updatedTopic === topicId)) return;
+        if (!updatedTopic || updatedTopic === topicId) return;
         else alert('Something went wrong. Please try refreshing the page.');
     },
         [localData]
@@ -180,12 +170,12 @@ export default function MainView(props: IMainViewProps) {
             return;
         }
 
-        const apiResponse = axios.delete(`/api/topic/${topicId}`)
+        const apiResponse = axios.delete(`/api/topic/${topicId}/${props.subId}`)
             .then(resp => {
-                if (resp.status === 200) return resp.data.id as number;
+                if (resp.status === 200) return Number(resp.data.id);
                 else throw new Error();
             }).catch(err => {
-                console.log(err.response.data);
+                console.log(err);
                 alert('Something went wrong while deleting the topic. Please try again later.');
                 return undefined;
             });
@@ -198,19 +188,7 @@ export default function MainView(props: IMainViewProps) {
 
         const deletedTopic = await apiResponse;
 
-        if (!deletedTopic) return;
-        else if (deletedTopic === topicId) {
-            axios.patch(`/api/subject/order/${props.subId}`, {
-                order: JSON.stringify(newTopicOrder)
-            }).then(resp => {
-                if (resp.status === 200) return;
-                else throw new Error();
-            }).catch(err => {
-                console.log(err);
-                if (err.response && err.response.status === 400) alert('Something went wrong. Please try refreshing the page.');
-                else alert('Something went wrong. The service may be down. Please try again later.');
-            });
-        }
+        if (!deletedTopic || deletedTopic === topicId) return;
         else alert('Something went wrong. Please try refreshing the page.');
     },
         [localData, props.subId]
@@ -231,16 +209,20 @@ export default function MainView(props: IMainViewProps) {
             topicId: topicId,
             note: text
         }).then(resp => {
-            if (resp.status === 201) return resp.data[0].id as number;
+            if (resp.status === 201) return Number(resp.data[0].id);
             else throw new Error();
         }).catch(err => {
             console.log(err);
             if (err.response && err.response.status === 400) alert(err.response.data);
             else alert('Something went wrong while attempting to create a new topic. Please try again later.');
-            return null;
+            return undefined;
         });
 
-        if (!newId) return;
+        if (typeof newId !== 'number') return;
+        else if (Number.isNaN(newId)) {
+            alert('Something went wrong. Please try refreshing the page.');
+            return;
+        }
 
         const newNote: INoteWithTopic = {
             id: newId,
@@ -262,17 +244,6 @@ export default function MainView(props: IMainViewProps) {
         newTopics.set(topicId, { name: topic.name, noteOrder: [newId, ...topic.noteOrder] });
 
         setLocalData({ ...localData, topics: newTopics, notes: newNotes });
-
-        axios.patch(`/api/topic/order/${topicId}`, {
-            order: JSON.stringify([newId, ...topic.noteOrder])
-        }).then(resp => {
-            if (resp.status === 200) return;
-            else throw new Error();
-        }).catch(err => {
-            console.log(err);
-            if (err.response && err.response.status === 400) alert('Something went wrong. Please try refreshing the page.');
-            else alert('Something went wrong. The service may be down. Please try again later.');
-        });
     },
         [localData]
     );
@@ -291,7 +262,7 @@ export default function MainView(props: IMainViewProps) {
         const apiResponse = axios.patch(`/api/note/${noteId}`, {
             note: text
         }).then(resp => {
-            if (resp.status === 200) return resp.data.id as number;
+            if (resp.status === 200) return Number(resp.data.id);
             else throw new Error();
         }).catch(err => {
             console.log(err);
@@ -308,7 +279,7 @@ export default function MainView(props: IMainViewProps) {
             return;
         }
 
-        const newNote = { ...oldNote, text: text } as INoteWithTopic;
+        const newNote = { ...oldNote, text: text };
         newNotes.set(noteId, newNote);
         setLocalData({ ...localData, notes: newNotes });
 
@@ -330,54 +301,41 @@ export default function MainView(props: IMainViewProps) {
             return;
         }
 
-        const apiResponse = axios.delete(`/api/note/${noteId}`)
-            .then(resp => {
-                if (resp.status === 200) return resp.data.id as number;
-                else throw new Error();
-            }).catch(err => {
-                console.log(err.response.data);
-                alert('Something went wrong while deleting the note. Please try again later.');
-                return null;
-            });
-
         const newNotes = new Map(localData.notes);
         const removed = newNotes.get(noteId);
-        newNotes.delete(noteId);
-
-        const newTopics = new Map(localData.topics);
-
         if (!removed) {
             alert('Something went wrong. Please try refreshing the page.');
             return;
         };
 
-        const topic = newTopics.get(removed.topicId);
+        const apiResponse = axios.delete(`/api/note/${noteId}/${removed.topicId}`)
+            .then(resp => {
+                if (resp.status === 200) return Number(resp.data.id);
+                else throw new Error();
+            }).catch(err => {
+                console.log(err);
+                alert('Something went wrong while deleting the note. Please try again later.');
+                return undefined;
+            });
 
+
+        newNotes.delete(noteId);
+        const newTopics = new Map(localData.topics);
+
+        const topic = newTopics.get(removed.topicId);
         if (!topic) {
             alert('Something went wrong. Please try refreshing the page.');
             return;
         };
 
         const newOrder = topic.noteOrder.filter(note => note !== noteId);
-        newTopics.set(removed.topicId, { name: topic.name, noteOrder: newOrder });
+        newTopics.set(removed.topicId, { ...topic, noteOrder: newOrder });
 
         setLocalData({ ...localData, topics: newTopics, notes: newNotes });
 
         const deletedNote = await apiResponse;
 
-        if (!deletedNote) return;
-        else if (deletedNote === noteId) {
-            axios.patch(`/api/topic/order/${removed.topicId}`, {
-                order: JSON.stringify(newOrder)
-            }).then(resp => {
-                if (resp.status === 200) return;
-                else throw new Error();
-            }).catch(err => {
-                console.log(err);
-                if (err.response && err.response.status === 400) alert('Something went wrong. Please try refreshing the page.');
-                else alert('Something went wrong. The service may be down. Please try again later.');
-            });
-        }
+        if (!deletedNote || deletedNote === noteId) return;
         else alert('Something went wrong. Please try refreshing the page.');
     },
         [localData]
@@ -413,54 +371,33 @@ export default function MainView(props: IMainViewProps) {
         const [noteId] = sNewNoteOrder.splice(startInd, 1);
         dNewNoteOrder.splice(endInd, 0, noteId);
 
-        newLocalTopics.set(sTopicId, { ...sTopic, noteOrder: sNewNoteOrder });
-        newLocalTopics.set(dTopicId, { ...dTopic, noteOrder: dNewNoteOrder });
-
-        // TODO: Rework moving note into a single API call
         const apiResponse = axios.patch(`/api/note/move/${noteId}`, {
-            topicId: dTopicId,
-            noteId: noteId
+            noteId: noteId,
+            sourceId: sTopicId,
+            sourceOrder: JSON.stringify(sNewNoteOrder),
+            destinationId: dTopicId,
+            destinationOrder: JSON.stringify(dNewNoteOrder)
         }).then(resp => {
-            if (resp.status === 200) return resp.data.id as number;
+            if (resp.status === 200) return Number(resp.data.id);
             else throw new Error();
         }).catch(err => {
             console.log(err);
             if (err.response && err.response.status === 400) alert(err.response.data);
             else alert('Something went wrong while editing the note. Please try again later.');
-            return;
-        });
-
-        axios.patch(`/api/topic/order/${sTopicId}`, {
-            order: JSON.stringify(sNewNoteOrder)
-        }).then(resp => {
-            if (resp.status === 200) return;
-            else throw new Error();
-        }).catch(err => {
-            console.log(err);
-            if (err.response && err.response.status === 400) alert('Something went wrong. Please try refreshing the page.');
-            else alert('Something went wrong. The service may be down. Please try again later.');
-        });
-
-        axios.patch(`/api/topic/order/${dTopicId}`, {
-            order: JSON.stringify(dNewNoteOrder)
-        }).then(resp => {
-            if (resp.status === 200) return;
-            else throw new Error();
-        }).catch(err => {
-            console.log(err);
-            if (err.response && err.response.status === 400) alert('Something went wrong. Please try refreshing the page.');
-            else alert('Something went wrong. The service may be down. Please try again later.');
+            return undefined;
         });
 
         const oldNote = newLocalNotes.get(noteId);
-
         if (!oldNote) {
             alert('Something went wrong. Please try refreshing the page.');
             return;
         }
 
-        const newNote = { ...oldNote, topicId: dTopicId } as INoteWithTopic;
+        const newNote = { ...oldNote, topicId: dTopicId };
         newLocalNotes.set(noteId, newNote);
+
+        newLocalTopics.set(sTopicId, { ...sTopic, noteOrder: sNewNoteOrder });
+        newLocalTopics.set(dTopicId, { ...dTopic, noteOrder: dNewNoteOrder });
 
         setLocalData({ ...localData, notes: newLocalNotes, topics: newLocalTopics });
 
