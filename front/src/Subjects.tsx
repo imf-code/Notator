@@ -28,7 +28,13 @@ export default function Subjects(props: ISubjectsProps) {
         axios.get('/api/subject/all')
             .then(resp => {
                 if (resp.status === 200) {
-                    setLocalSubjects(resp.data);
+                    const sortedSubjects = [...resp.data] as ISubject[];
+                    sortedSubjects.sort((first, second) => {
+                        if (first.name > second.name) return 1;
+                        else if (first.name < second.name) return -1;
+                        else return 0;
+                    });
+                    setLocalSubjects(sortedSubjects);
                 }
                 else throw new Error();
             })
