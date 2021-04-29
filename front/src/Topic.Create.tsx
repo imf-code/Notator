@@ -31,7 +31,7 @@ export default function CreateTopic(props: ICreateTopicProps) {
                 onFinish(newTopic);
             }}>
 
-            <input className='w-64 align-middle mr-1 p-1 focus:outline-none rounded-sm shadow-inner bg-green-100'
+            <input className='flex-grow align-middle mr-1 p-1 focus:outline-none rounded-sm shadow-inner bg-green-100'
                 type='text'
                 placeholder='Create a new topic...'
                 value={newTopic}

@@ -6,7 +6,6 @@ import { INote, ISubject } from './Interfaces';
 import Topic from './Topic';
 import CreateTopic from './Topic.Create';
 import Note from './Note';
-import CreateNote from './Note.Create';
 
 interface IMainViewProps {
     /** ID of the parent subject */
@@ -531,42 +530,29 @@ export default function MainView(props: IMainViewProps) {
             const topic = localTopics.get(topicId);
             if (!topic) return <div key={'error' + topicId}>Error</div>;
 
-            const orderedNoteArray: JSX.Element[] = topic.noteOrder.map((noteId, noteInd) => {
-                const note = localNotes.get(noteId);
-
-                if (!note) return <div key={'error' + noteId}>Error</div>;
-                else return (
-                    <Note key={'note' + note.id}
-                        index={noteInd}
-                        selected={note.id === selectedNote}
-                        setSelected={selectNote}
-                        onEdit={editNote}
-                        onDelete={deleteNote}
-                        {...note} />
-                );
-            });
-
             return (
                 <Topic key={'topic' + topicId}
                     id={topicId}
                     name={topic.name}
                     onEdit={renameTopic}
                     onDelete={deleteTopic}
-                    index={topicInd} >
+                    index={topicInd}
+                    addNote={createNote}>
 
-                    <CreateNote key={'create' + topicId} addNote={createNote} topicId={topicId} />
+                    {topic.noteOrder.map((noteId, noteInd) => {
+                        const note = localNotes.get(noteId);
 
-                    <Droppable key={'drop' + topicId} droppableId={String(topicId)} type='NOTE'>
-                        {(provided, snapshot) => (
-
-                            <div className='overflow-y-scroll overflow-x-hidden h-full bar-sm'
-                                ref={provided.innerRef}
-                                {...provided.droppableProps} >
-
-                                {orderedNoteArray}
-                                {provided.placeholder}
-                            </div>)}
-                    </Droppable>
+                        if (!note) return <div key={'error' + noteId}>Error</div>;
+                        else return (
+                            <Note key={'note' + note.id}
+                                index={noteInd}
+                                selected={note.id === selectedNote}
+                                setSelected={selectNote}
+                                onEdit={editNote}
+                                onDelete={deleteNote}
+                                {...note} />
+                        );
+                    })}
 
                 </Topic>
             );
@@ -578,7 +564,7 @@ export default function MainView(props: IMainViewProps) {
 
     return (
         <DragDropContext onDragEnd={onDragEnd}>
-            <div className='flex flex-col flex-grow w-full bg-yellow-50 overflow-hidden'>
+            <div className='flex flex-col h-full w-full bg-yellow-50 overflow-scroll'>
 
                 <div className='mx-4 mt-2'>
                     <CreateTopic addTopic={createTopic} />
@@ -586,7 +572,7 @@ export default function MainView(props: IMainViewProps) {
 
                 <Droppable key='topics' droppableId='topics' type='TOPIC' direction='horizontal'>
                     {(provided, snapshot) => (
-                        <div className='flex h-full flex-nowrap overflow-x-scroll overflow-y-hidden flex-row px-2 pb-2'
+                        <div className='flex flex-row px-2 pb-2'
                             ref={provided.innerRef}
                             {...provided.droppableProps}>
 

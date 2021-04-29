@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 @layer utilities {
-    /* TODO: Scrollbar style for non-webkit browsers */
+    /* **DEPRECATED** */
     .bar-sm::-webkit-scrollbar {
         width: 6px;
     }

@@ -10,7 +10,7 @@ interface IHeaderProps {
 export default function Header(props: IHeaderProps) {
 
     return (
-        <div className='flex top-0 justify-between w-full h-11 pt-2 px-2 bg-green-300'>
+        <div className='flex top-0 justify-between w-full h-11 py-2 px-2 bg-green-300'>
 
             <div className='text-xl font-medium select-none cursor-pointer'
                 onClick={() => window.location.reload()}>

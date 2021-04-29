@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { iconStyle } from './Buttons.Icons';
-import { Draggable } from 'react-beautiful-dnd';
+import { Draggable, Droppable } from 'react-beautiful-dnd';
+import CreateNote from './Note.Create';
 
 // Icons
 import EditIcon from '@material-ui/icons/Edit';
@@ -27,7 +28,9 @@ interface ITopicProps {
      * Handler for deleting a topic
      * @param topicId ID of the topic to be deleted
      */
-    onDelete: (topicId: number) => Promise<void>
+    onDelete: (topicId: number) => Promise<void>;
+    /** For creating a new note */
+    addNote?: (topicId: number, text: string) => Promise<void>;
 }
 
 /**
@@ -86,45 +89,62 @@ export default function Topic(props: ITopicProps) {
             index={props.index} >
 
             {(provided, snapshot) => (
-                <div className='flex flex-none flex-col overflow-hidden border-green-200 border-r4 w-80 m-2 box-border bg-green-200 rounded-md shadow-md'
+                <div className='flex flex-none flex-col w-96 m-2 bg-green-200 rounded-sm shadow-md'
                     ref={provided.innerRef}
                     {...provided.draggableProps} >
 
-                    <div className='flex justify-between mb-1'
+                    <div className='flex flex-col bg-green-300 p-3 pb-1'
                         {...provided.dragHandleProps} >
-                        <div className='w-5/6 pl-1'>
-                            {edit ?
-                                <input type='text' value={editedName} onChange={event => setEditedName(event.target.value)}
-                                    ref={inputRef}
-                                    className='text-lg font-medium w-full h-7 px-1 -mx-1 focus:outline-none rounded-sm shadow-inner bg-green-100' /> :
-                                <p className='text-lg truncate font-medium'>
-                                    {props.name}
-                                </p>}
+                        <div className='flex justify-between mb-1'>
+                            <div className='flex-grow pl-1'>
+                                {edit ?
+                                    <input className='text-lg font-medium w-full h-7 px-1 -mx-1 focus:outline-none bg-green-300'
+                                        type='text' value={editedName} onChange={event => setEditedName(event.target.value)}
+                                        ref={inputRef} /> :
+                                    <p className='text-lg truncate font-medium'>
+                                        {props.name}
+                                    </p>}
+                            </div>
+
+                            <div>
+                                {edit ?
+                                    <button onClick={onStopEdit} ref={editRef}
+                                        className='focus:outline-none'>
+                                        <SaveAltIcon fontSize='small' className={iconStyle} />
+                                    </button> :
+                                    <button onClick={() => setEdit(true)}
+                                        className='focus:outline-none'>
+                                        <EditIcon fontSize='small' className={iconStyle} />
+                                    </button>}
+                                {edit ?
+                                    <button onClick={onCancelEdit}
+                                        className='focus:outline-none'>
+                                        <CancelIcon fontSize='small' className={iconStyle} />
+                                    </button> :
+                                    <button onClick={() => props.onDelete(props.id)}
+                                        className='focus:outline-none'>
+                                        <DeleteIcon fontSize='small' className={iconStyle} />
+                                    </button>}
+                            </div>
+
                         </div>
 
-                        <div>
-                            {edit ?
-                                <button onClick={onStopEdit} ref={editRef}
-                                    className='focus:outline-none'>
-                                    <SaveAltIcon fontSize='small' className={iconStyle} />
-                                </button> :
-                                <button onClick={() => setEdit(true)}
-                                    className='focus:outline-none'>
-                                    <EditIcon fontSize='small' className={iconStyle} />
-                                </button>}
-                            {edit ?
-                                <button onClick={onCancelEdit}
-                                    className='focus:outline-none'>
-                                    <CancelIcon fontSize='small' className={iconStyle} />
-                                </button> :
-                                <button onClick={() => props.onDelete(props.id)}
-                                    className='focus:outline-none'>
-                                    <DeleteIcon fontSize='small' className={iconStyle} />
-                                </button>}
-                        </div>
+                        {props.addNote && <CreateNote key={'create' + props.id} addNote={props.addNote} topicId={props.id} />}
                     </div>
 
-                    {props.children}
+                    <Droppable key={'drop' + props.id} droppableId={String(props.id)} type='NOTE'>
+                        {(provided, snapshot) => (
+                            
+                            <div className='p-1 h-full'
+                                ref={provided.innerRef}
+                                {...provided.droppableProps}>
+
+                                {props.children}
+                                {provided.placeholder}
+
+                            </div>)}
+
+                    </Droppable>
 
                 </div>)}
 
