@@ -80,6 +80,3 @@ To enable SSL on a Postgres server you need to:
 * Express
 * Typeorm
 * Postgres
-
-# Known issues
-* Autoscrolling in react-beautiful-dnd does not support the current setup. Everything should still work but fixing the warnings will require quite a bit of rewriting, so it is what it is for now.
