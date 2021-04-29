@@ -572,7 +572,7 @@ export default function MainView(props: IMainViewProps) {
 
                 <Droppable key='topics' droppableId='topics' type='TOPIC' direction='horizontal'>
                     {(provided, snapshot) => (
-                        <div className='flex flex-row px-2 pb-2'
+                        <div className='flex flex-row flex-grow px-2 pb-2'
                             ref={provided.innerRef}
                             {...provided.droppableProps}>
 
