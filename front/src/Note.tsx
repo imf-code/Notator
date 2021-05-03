@@ -3,6 +3,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Draggable } from 'react-beautiful-dnd';
 import { INote } from './Interfaces';
 
+
+
 interface INoteProps extends INote {
     /** Order index */
     index: number;
@@ -91,19 +93,19 @@ export default function Note(props: INoteProps) {
 
     function dragStyles(isDragging: boolean) {
         if (!isDragging) {
-            return props.selected ? 'flex p-1 shadow rounder-md my-1 mr-1' :
-                'flex p-1 shadow rounded-md my-1 mr-1 hover:bg-green-300';
+            return props.selected ? 'flex p-1 bg-green-100' :
+                'flex py-1 px-1.5 hover:bg-green-300';
         }
         else {
-            return props.selected ? 'flex p-1 bg-green-200 border-green-300 shadow rounded-md my-1 mr-1' :
-                'flex p-1 bg-green-300 shadow rounded-md my-1 mr-1';
+            return 'flex p-1 bg-green-300 rounded-sm';
         }
     }
 
     return (
         <Draggable
             draggableId={String(props.id)}
-            index={props.index}>
+            index={props.index}
+            isDragDisabled={props.selected}>
 
             {(provided, snapshot) => (
                 <form className={dragStyles(snapshot.isDragging)}
@@ -115,9 +117,9 @@ export default function Note(props: INoteProps) {
                         stopEdit();
                     }}>
 
-                    <div className={props.selected ? 'w-full bg-green-200 rounded-sm px-0.5' : 'w-full px-0.5'}>
+                    <div className={props.selected ? 'w-full bg-green-100 px-0.5' : 'w-full px-0.5'}>
                         {edit &&
-                            <TextareaAutosize className='w-full align-middle border-none resize-none focus:outline-none rounded-sm bg-green-200'
+                            <TextareaAutosize className='w-full align-middle border-none resize-none focus:outline-none bg-green-50'
                                 ref={inputRef}
                                 value={editedText} onChange={event => setEditedText(event.target.value)}
                                 onKeyPress={e => {
@@ -132,12 +134,12 @@ export default function Note(props: INoteProps) {
                                 <div className='break-words'>
                                     {props.text}
                                 </div> :
-                                <p className='break-words hover:bg-green-300 hover:rounded-sm' onClick={() => props.setSelected(props.id)}>
+                                <div className='break-words hover:bg-green-300 hover:rounded-sm' onClick={() => props.setSelected(props.id)}>
                                     {props.text}
-                                </p>)}
+                                </div>)}
 
                         {(props.selected && !confirmDelete) &&
-                            <div className='flex flex-row flex-grow justify-around w-full text-sm border-t-2 border-green-100'>
+                            <div className='flex flex-row flex-grow justify-around w-full text-sm border-t-2 border-green-50'>
 
                                 {edit ?
                                     <label>
@@ -176,7 +178,7 @@ export default function Note(props: INoteProps) {
                             </div>}
 
                         {(props.selected && confirmDelete) &&
-                            <div className='flex flex-row justify-around w-full text-sm border-t-2 border-green-100'>
+                            <div className='flex flex-row justify-around w-full text-sm border-t-2 border-green-50'>
                                 <div className='underline cursor-pointer w-12 text-center'
                                     onClick={() => {
                                         if (!deleteDisabledRef.current) {
@@ -189,7 +191,7 @@ export default function Note(props: INoteProps) {
                         </div>
 
                                 <div className='w-12 text-center'>
-                                    Delete
+                                    Delete?
                         </div>
 
                                 <div className='underline cursor-pointer w-12 text-center'

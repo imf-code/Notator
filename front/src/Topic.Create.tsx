@@ -21,6 +21,7 @@ export default function CreateTopic(props: ICreateTopicProps) {
 
         await props.addTopic(name);
 
+        setNewTopic('');
         if (submitRef.current) submitRef.current.disabled = false;
     }
 

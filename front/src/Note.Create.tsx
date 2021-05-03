@@ -27,6 +27,7 @@ export default function CreateNote(props: ICreateNoteProps) {
 
         await props.addNote(props.topicId, text);
 
+        setNewNote('');
         if (submitRef.current) submitRef.current.disabled = false;
     }
 

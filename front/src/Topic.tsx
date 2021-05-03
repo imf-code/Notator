@@ -93,12 +93,13 @@ export default function Topic(props: ITopicProps) {
                     ref={provided.innerRef}
                     {...provided.draggableProps} >
 
+
                     <div className='flex flex-col bg-green-300 p-3 pb-1'
                         {...provided.dragHandleProps} >
-                        <div className='flex justify-between mb-1'>
-                            <div className='flex-grow pl-1'>
+                        <div className='flex flex-row flex-nowrap mb-1'>
+                            <div className='flex flex-wrap truncate flex-grow'>
                                 {edit ?
-                                    <input className='text-lg font-medium w-full h-7 px-1 -mx-1 focus:outline-none bg-green-300'
+                                    <input className='text-lg font-medium w-full h-7 px-1 -mx-1 focus:outline-none bg-green-200 shadow-inner rounded-sm'
                                         type='text' value={editedName} onChange={event => setEditedName(event.target.value)}
                                         ref={inputRef} /> :
                                     <p className='text-lg truncate font-medium'>
@@ -106,7 +107,7 @@ export default function Topic(props: ITopicProps) {
                                     </p>}
                             </div>
 
-                            <div>
+                            <div className='flex flex-nowrap'>
                                 {edit ?
                                     <button onClick={onStopEdit} ref={editRef}
                                         className='focus:outline-none'>
@@ -126,7 +127,6 @@ export default function Topic(props: ITopicProps) {
                                         <DeleteIcon fontSize='small' className={iconStyle} />
                                     </button>}
                             </div>
-
                         </div>
 
                         {props.addNote && <CreateNote key={'create' + props.id} addNote={props.addNote} topicId={props.id} />}
@@ -134,8 +134,8 @@ export default function Topic(props: ITopicProps) {
 
                     <Droppable key={'drop' + props.id} droppableId={String(props.id)} type='NOTE'>
                         {(provided, snapshot) => (
-                            
-                            <div className='p-1 h-full'
+
+                            <div className='h-full'
                                 ref={provided.innerRef}
                                 {...provided.droppableProps}>
 
@@ -146,8 +146,9 @@ export default function Topic(props: ITopicProps) {
 
                     </Droppable>
 
-                </div>)}
+                </div >)
+            }
 
-        </Draggable>
+        </Draggable >
     );
 }
