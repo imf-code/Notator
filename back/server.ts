@@ -112,6 +112,7 @@ const httpsPort = 443;
 
         const sessionRepo = dbConnection.getRepository(SessionStorage);
         return app.use(ExpressSession({
+            name: 'sessionCookie',
             secret: process.env.SESSION_SECRET as string,
             saveUninitialized: false,
             resave: false,
