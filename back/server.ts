@@ -109,7 +109,7 @@ const httpsPort = 443;
     // see https://expressjs.com/en/guide/behind-proxies.html
     // app.set('trust proxy', 1);
     const limiter = rateLimit({
-        windowMs: 60 * 60 * 1000,    // 1h
+        windowMs: 24 * 60 * 60 * 1000,    // 1d
         max: 100
     });
     app.use('/api/auth/login', limiter);
