@@ -5,6 +5,7 @@ import https from 'https';
 
 import express from 'express';
 import ExpressSession from 'express-session';
+import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
@@ -103,6 +104,15 @@ const httpsPort = 443;
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
     app.use(helmet());
+
+    // Enable if you're behind a reverse proxy (Heroku, Bluemix, AWS ELB, Nginx, etc)
+    // see https://expressjs.com/en/guide/behind-proxies.html
+    // app.set('trust proxy', 1);
+    const limiter = rateLimit({
+        windowMs: 60 * 60 * 1000,    // 1h
+        max: 100
+    });
+    app.use('/api/auth/login', limiter);
 
     await (async () => {
         if (!dbConnection) {

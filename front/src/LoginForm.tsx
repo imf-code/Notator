@@ -44,7 +44,8 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
                     else setMessage('Something went wrong with your login attempt. Please try again later.');
                 })
                 .catch(err => {
-                    if (err.response.status === 401) setMessage('Wrong username/password.');
+                    if (err.response && err.response.status === 401) setMessage('Wrong username/password.');
+                    else if (err.response && err.response.status === 429) setMessage('Too many login attempts. Please wait some time before trying again.');
                     else throw err;
                 });
 
@@ -90,7 +91,7 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
                 else setMessage('Something went wrong with your signup attempt. Please try again later.');
             })
             .catch(err => {
-                if (err.response.status === 400) setMessage(err.response.data);
+                if (err.response && err.response.status === 400) setMessage(err.response.data);
                 else setMessage('Something went wrong with your signup attempt. Please try again later.');
             });
 
@@ -100,12 +101,12 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
     }
 
     return (
-        <div className='flex flex-wrap h-96 w-screen justify-center'>
-            <div className='relative w-64 self-center font-sans px-8 pt-9 pb-14 bg-green-300 rounded-3xl shadow-lg'>
-                <p className='text-xl pt-0.5'>
+        <div className='flex flex-col h-96 w-screen justify-center'>
+            <div className='flex flex-col relative w-64 self-center font-sans px-8 py-9 bg-green-300 rounded-3xl shadow-lg'>
+                <p className='text-center text-xl pt-0.5'>
                     Welcome to Notator
                 </p>
-                <p className='float-right text-gray-600 text-sm'>
+                <p className='text-right text-gray-600 text-sm'>
                     ver. 0.9
                 </p>
                 <form onSubmit={event => {
@@ -136,9 +137,13 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
                     </div>
                 </form>
 
-                <p className='absolute italic pl-0.5'>
-                    {message}
-                </p>
+                {message ?
+                    <p className='text-center italic'>
+                        {message}
+                    </p> :
+                    <div className='h-5'>
+                    </div>}
+
             </div>
         </div>
     );
