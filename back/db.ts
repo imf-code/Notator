@@ -372,9 +372,67 @@ export default class Database {
             .values([{
                 client: userId,
                 topic: topicId,
-                text: note
+                text: note,
+                previous: null
             }])
             .execute();
+    }
+
+    /**
+     * **WIP**
+     * Create a new note using previous ID for order
+     * @param userId User ID
+     * @param topicId Topic ID
+     * @param note Note text.
+     */
+    public async createNotePrev(userId: string, topicId: number, note: string) {
+        const queryRunner = getConnection().createQueryRunner();
+        await queryRunner.connect();
+
+        await queryRunner.startTransaction();
+
+        try {
+            const previousTopNote = await queryRunner.manager
+                .createQueryBuilder()
+                .select('id')
+                .from(Note, 'note')
+                .where('note.previous = NULL')
+                .execute();
+
+            console.log(previousTopNote);
+            // const insertResult = await queryRunner.manager
+            //     .createQueryBuilder()
+            //     .insert()
+            //     .into(Note)
+            //     .values([{
+            //         client: userId,
+            //         topic: topicId,
+            //         text: note,
+            //         previous: null
+            //     }])
+            //     .execute();
+
+            // if (previousTopNote) {
+            //     await queryRunner.manager
+            //         .createQueryBuilder()
+            //         .update(Note)
+            //         .set({
+            //             previous: insertResult.identifiers[0].id as number
+            //         })
+            //         .where({
+            //             id: previousTopNote
+            //         })
+            //         .execute();
+            // }
+
+            await queryRunner.commitTransaction();
+
+            return;
+        } catch (err) {
+            console.log(err);
+            await queryRunner.rollbackTransaction();
+            return;
+        }
     }
 
     /**
@@ -447,6 +505,47 @@ export default class Database {
                 })
                 .execute();
         }
+    }
+
+    /**
+     * **WIP**
+     * Move a note inside a topic using previous ID for ordering.
+     * @param userID User ID 
+     * @param movingId ID of moving note
+     * @param targetId ID of the next note from moving note's position
+     */
+    public async moveNotePrev(userID: string, movingId: number, targetId: number) {
+
+        const queryRunner = getConnection().createQueryRunner();
+        await queryRunner.connect();
+
+        await queryRunner.startTransaction();
+
+        try {
+            const moving = queryRunner.manager.createQueryBuilder()
+                .select('id', 'previous')
+
+
+        } catch (err) {
+
+        }
+
+        return await getConnection()
+            .createQueryBuilder()
+            .update(Note)
+            .set({
+
+                // id: () =>
+                //     '(' +
+                //     getConnection()
+                //         .createQueryBuilder()
+                //         .select()
+                //     + ')'
+            })
+            .setParameters({
+                movingId: movingId,
+                targetId: targetId
+            }).getQuery();
     }
 
     /**

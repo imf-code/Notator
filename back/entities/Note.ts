@@ -11,6 +11,11 @@ export class Note {
     @Column('text')
     text!: string;
 
+    @Column('numeric', {
+        nullable: true
+    })
+    previous!: number | null;
+
     @ManyToOne(() => Client, user => user.notes, {
         onDelete: 'CASCADE'
     })

@@ -187,6 +187,16 @@ export default (): Router => {
             return;
         });
     });
+    
+    // DEV
+    router.post('/test', (req: Request, res) => {
+        if (!req.id) {
+            res.sendStatus(500);
+            return;
+        }
+
+        res.sendStatus(200);
+    });
 
     return router;
 }
