@@ -115,6 +115,7 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
                 }}>
                     <div>
                         <input type='text'
+                            autoComplete='username'
                             className='w-full bg-green-100 focus:outline-none border-b-2 border-green-400 shadow-inner rounded-sm px-1 mt-1 mb-0.5'
                             placeholder='Username'
                             value={username}
@@ -123,6 +124,7 @@ export default function LoginForm(props: ILoginFormProps): JSX.Element {
 
                     <div>
                         <input type='password'
+                            autoComplete='current-password'
                             className='w-full bg-green-100 focus:outline-none border-b-2 border-green-400 shadow-inner rounded-sm px-1 mt-1 mb-0.5'
                             placeholder='Password'
                             value={password}
